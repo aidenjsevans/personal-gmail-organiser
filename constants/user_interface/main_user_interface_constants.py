@@ -32,3 +32,7 @@ class MainUserInterfaceConstants(UserInterfaceConstants):
     @property
     def filter_delete_service_options(self) -> str:
         return self.__filter_delete_service_options
+    
+    @property
+    def filter_create_service_options(self) -> str:
+        return self.__filter_create_service_options

@@ -16,4 +16,9 @@ class UserInterfaceConstants(ABC):
     @abstractmethod
     def filter_delete_service_options(self) -> str:
         pass
+
+    @property
+    @abstractmethod
+    def filter_create_service_options(self) -> str:
+        pass
     

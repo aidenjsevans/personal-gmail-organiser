@@ -8,6 +8,8 @@ from models.filters.filter import Filter
 
 from utilities.io_helper import IOHelper
 
+from googleapiclient.errors import HttpError
+
 class FilterService(GmailServiceUser):
 
     def __init__(
@@ -83,25 +85,37 @@ class FilterService(GmailServiceUser):
             filter_id: str,
             suppress_print: bool) -> Filter:
 
-        filter_dict: dict = self.gmail_service.service.users().settings().filters().get(
-            userId="me",
-            id=filter_id
-            ).execute()
-        
-        filter = Filter.from_gmail_api_dict(filter_dict)
+        try:
 
-        self.gmail_service.service.users().settings().filters().delete(
-            userId="me",
-            id=filter_id
-            ).execute()
-        
-        if suppress_print:
+            filter_dict: dict = self.gmail_service.service.users().settings().filters().get(
+                userId="me",
+                id=filter_id
+                ).execute()
+            
+            filter = Filter.from_gmail_api_dict(filter_dict)
+
+            self.gmail_service.service.users().settings().filters().delete(
+                userId="me",
+                id=filter_id
+                ).execute()
+            
+            if suppress_print:
+                return filter
+            
+            print(f"\nFilter deleted:")
+            print(f"\n{filter.__str__()}")
+
+            #   TODO need to delete the local saved json file as well. Should implement a file that stores the filter name and ids as key value pairs
+
             return filter
-        
-        print(f"Filter deleted:")
-        print(f"\n{filter.__str__()}")
 
-        return filter
+        except HttpError as error:
+
+            match error.resp.status:
+
+                case 404:
+                
+                    print(f"\nFilter ID : {filter_id} does not exist")
 
     def print_all_filters(self) -> None:
 
@@ -109,7 +123,7 @@ class FilterService(GmailServiceUser):
         filters = results.get("filter",[])
 
         if not filters:
-            print("No filters found")
+            print("\nNo filters found")
             return
         
         print("\nFilters:")

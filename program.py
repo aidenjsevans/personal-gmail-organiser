@@ -174,8 +174,19 @@ class Program:
             
                     has_user_finished = True
 
-                return has_user_finished
-                  
+                    return has_user_finished
+            
+                if filter_delete_service_options[int(index_choice)] == 'delete by id':
+
+                    filter_id_input: str = input("\nFilter ID: ")
+
+                    self.filter_service.delete_filter(
+                        filter_id = filter_id_input, 
+                        suppress_print = False
+                        )
+
+                    return has_user_finished
+
             except KeyError:
 
                 print(f"ERROR: '{index_choice}' is not a valid input")
@@ -198,7 +209,8 @@ class Program:
         
         if not has_successfully_initialised:
             raise Exception("Program failed to initialise")
-        
+    
+    #   TODO need to add a feature to ensure that the services are initialised after the dir paths. Could use some sort of bool
     def initialise_services(self):
 
         gmail_service = GmailService(
@@ -272,14 +284,17 @@ class Program:
                 match path_name:
 
                     case "DEFAULT_AUTHENTICATION_DIR":
-
+                        
                         self.authentication_data_dir = os.path.join(*default_path_list[1:])
+                    
                     case "DEFAULT_FILTER_DIR":
 
                         self.filter_data_dir = os.path.join(*default_path_list[1:])
+                    
                     case "DEFAULT_BLOCK_FILTER_DIR":
 
                         self.block_filter_data_dir = os.path.join(*default_path_list[1:])
+                    
                     case _:
                         
                         raise Exception(f"Path name '{path_name}' is not recognised")
