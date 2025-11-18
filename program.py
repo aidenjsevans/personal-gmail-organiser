@@ -243,7 +243,6 @@ class Program:
             default_block_filter_dir_path_list: list = [
                 "DEFAULT_BLOCK_FILTER_DIR", 
                 "data", 
-                "filters",
                 "block_filters"]
 
             default_paths.append(default_authentication_dir_path_list)
@@ -271,13 +270,18 @@ class Program:
                 path_name: str = default_path_list[0]
 
                 match path_name:
+
                     case "DEFAULT_AUTHENTICATION_DIR":
+
                         self.authentication_data_dir = os.path.join(*default_path_list[1:])
                     case "DEFAULT_FILTER_DIR":
+
                         self.filter_data_dir = os.path.join(*default_path_list[1:])
                     case "DEFAULT_BLOCK_FILTER_DIR":
+
                         self.block_filter_data_dir = os.path.join(*default_path_list[1:])
                     case _:
+                        
                         raise Exception(f"Path name '{path_name}' is not recognised")
             
             print(f"\nRead directory paths: {dir_paths_filepath}")
