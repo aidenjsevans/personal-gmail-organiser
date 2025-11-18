@@ -1,0 +1,3 @@
+DEFAULT_AUTHENTICATION_DIR,data,authentication
+DEFAULT_FILTER_DIR,data,filters
+DEFAULT_BLOCK_FILTER_DIR,data,filters,block_filters

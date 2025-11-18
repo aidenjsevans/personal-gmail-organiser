@@ -1,0 +1,1 @@
+{"filter": {"criteria": {"from": "example1@gmail.com"}, "action": {"removeLabelIds": ["INBOX"], "addLabelIds": ["TRASH"]}, "id": "filter_id"}}
