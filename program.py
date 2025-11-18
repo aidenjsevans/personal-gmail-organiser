@@ -11,6 +11,7 @@ from constants.user_interface.user_interface_constants import UserInterfaceConst
 from constants.user_interface.main_user_interface_constants import MainUserInterfaceConstants
 
 from utilities.io_helper import IOHelper
+from utilities.user_interface_helper import UserInterfaceHelper
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.modify",
           "https://www.googleapis.com/auth/gmail.settings.basic"]
@@ -54,18 +55,11 @@ class Program:
 
     def user_choosing_gmail_service(self) -> bool:
 
-        gmail_service_options_list: list = self.user_interface_constants.gmail_service_options
-        gmail_service_options: dict = {}
-
-        for index, option in enumerate(gmail_service_options_list):
-            gmail_service_options[index + 1] = option
-
-        gmail_service_options[len(gmail_service_options) + 1] = "exit"
-
-        print("Gmail service options: \n")
-
-        for index, option in gmail_service_options.items():
-            print(f"\t{index}. {option}")
+        gmail_service_options: dict = UserInterfaceHelper.get_service_options(
+            user_interface_constants = self.user_interface_constants,
+            attribute_name = "gmail_service_options",
+            service_name = "Gmail"
+            )
 
         index_choice: str = input("\nSelect a Gmail service: ")
 
@@ -93,20 +87,12 @@ class Program:
 
     def user_choosing_filter_service(self) -> bool:
 
-        filter_service_options_list: list = self.user_interface_constants.filter_service_options
-        
-        filter_service_options: dict = {}
+        filter_service_options: dict = UserInterfaceHelper.get_service_options(
+            user_interface_constants = self.user_interface_constants,
+            attribute_name = "filter_service_options",
+            service_name = "Filter"
+            )
 
-        for index, option in enumerate(filter_service_options_list):
-            filter_service_options[index + 1] = option
-
-        filter_service_options[len(filter_service_options_list) + 1] = "exit"
-
-        print("\nFilter service options: \n")
-
-        for index, option in filter_service_options.items():
-            print(f"\t{index}. {option}")
-        
         index_choice: str = input("\nSelect a filter service: ")
         
         has_user_finished = False
@@ -145,18 +131,11 @@ class Program:
 
     def user_choosing_delete_filter_service(self) -> bool:
             
-            filter_delete_service_options_list: list = self.user_interface_constants.filter_delete_service_options
-            filter_delete_service_options: dict = {}
-
-            for index, option in enumerate(filter_delete_service_options_list):
-                filter_delete_service_options[index + 1] = option
-
-            filter_delete_service_options[len(filter_delete_service_options_list) + 1] = "exit"
-
-            print("\nFilter delete service options: \n")
-
-            for index, option in filter_delete_service_options.items():
-                print(f"\t{index}. {option}")
+            filter_delete_service_options: dict = UserInterfaceHelper.get_service_options(
+            user_interface_constants = self.user_interface_constants,
+            attribute_name = "filter_delete_service_options",
+            service_name = "Filter delete"
+            )
 
             index_choice: str = input("\nSelect a filter delete service: ")
 

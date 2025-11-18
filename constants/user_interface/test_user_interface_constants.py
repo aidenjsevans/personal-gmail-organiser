@@ -1,26 +1,26 @@
 from constants.user_interface.user_interface_constants import UserInterfaceConstants
 
-class MainUserInterfaceConstants(UserInterfaceConstants):
+class TestUserInterfaceConstants(UserInterfaceConstants):
 
     def __init__(self):
         
         self.__gmail_service_options: list = [
-            "gmail filters"
+            "option_1"
         ]
 
         self.__filter_service_options: list = [
-            "create filter",
-            "delete filter",
-            "create block filter",
-            "print all filters",
-            "add email to block filter"
+            "option_2",
+            "option_3",
+            "option_4",
+            "option_5",
+            "option_6"
         ]
 
         self.__filter_delete_service_options: list = [
-            "delete by name",
-            "delete by id"
+            "option_7",
+            "option_8"
         ]
-        
+
     @property
     def gmail_service_options(self) -> str:
         return self.__gmail_service_options
