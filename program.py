@@ -40,10 +40,19 @@ class Program:
     def run(self) -> None:
 
         os.system('cls')
+
+        self.initialise()
         
         print("\nGMAIL ORGANISER\n")
 
         finished_choosing_gmail_service: bool = False
+
+        while not finished_choosing_gmail_service:
+
+            finished_choosing_gmail_service = self.user_choosing_gmail_service()
+
+
+    def user_choosing_gmail_service(self) -> bool:
 
         gmail_service_options_list: list = self.user_interface_constants.gmail_service_options
         gmail_service_options: dict = {}
@@ -54,132 +63,34 @@ class Program:
         gmail_service_options[len(gmail_service_options) + 1] = "exit"
 
         print("Gmail service options: \n")
-        
+
         for index, option in gmail_service_options.items():
             print(f"\t{index}. {option}")
 
-        while not finished_choosing_gmail_service:
+        index_choice: str = input("\nSelect a Gmail service: ")
+
+        has_user_finished = False
+
+        if not index_choice.isdigit():
             
-            index_choice: str = input("\nSelect a Gmail service: ")
+            print(f"ERROR: '{index_choice}' is not an integer")
 
-            if not index_choice.isdigit():
-                
-                print(f"ERROR: '{index_choice}' is not an integer")
-                
-                continue
+            return has_user_finished
 
-            if gmail_service_options[int(index_choice)] == 'exit':
-                
-                finished_choosing_gmail_service = True
-                
-                continue
-
-            if gmail_service_options[int(index_choice)] == 'gmail filters':
-
-                finished_choosing_filter_service = False
-
-                while not finished_choosing_filter_service:
-
-                    finished_choosing_filter_service = self.user_choosing_filter_service()
-                
-                    '''
-
-                    filter_service_options_list: list = self.user_interface_constants.filter_service_options
-                    filter_service_options: dict = {}
-
-                    for index, option in enumerate(filter_service_options_list):
-                        filter_service_options[index + 1] = option
-
-                    filter_service_options[len(filter_service_options_list) + 1] = "exit"
-
-                    print("\nFilter service options: \n")
-
-                    for index, option in filter_service_options.items():
-                        print(f"\t{index}. {option}")
-                    
-                    while not finished_choosing_filter_service:
-
-                        filter_service_index_choice: str = input("\nSelect a filter service: ")
-
-                        if not filter_service_index_choice.isdigit():
-                            print(f"ERROR: '{filter_service_index_choice}' is not an integer")
-                            continue
-
-                        try:
-
-                            if filter_service_options[int(filter_service_index_choice)] == 'exit':
-                                
-                                finished_choosing_filter_service = True
-                                
-                                print("\nGmail service options: \n")
-                                
-                                for index, option in gmail_service_options.items():
-                                    print(f"\t{index}. {option}")
-                                
-                                continue
-
-                            if filter_service_options[int(filter_service_index_choice)] == 'print all filters':
-
-                                self.filter_service.print_all_filters()
-                            
-                            if filter_service_options[int(filter_service_index_choice)] == 'delete filter':
-
-                                finished_choosing_filter_delete_service: bool = False
-                                
-                                filter_delete_service_options_list: list = self.user_interface_constants.filter_delete_service_options
-                                filter_delete_service_options: dict = {}
-
-                                for index, option in enumerate(filter_delete_service_options_list):
-                                    filter_delete_service_options[index + 1] = option
-
-                                filter_delete_service_options[len(filter_delete_service_options_list) + 1] = "exit"
-
-                                print("\nFilter delete service options: \n")
-
-                                for index, option in filter_delete_service_options.items():
-                                    print(f"\t{index}. {option}")
-
-                                while not finished_choosing_filter_delete_service:
-
-                                    filter_delete_service_index_choice: str = input("\nSelect a filter delete service: ")
-
-                                    if not filter_delete_service_index_choice.isdigit():
-                                        print(f"ERROR: '{filter_delete_service_index_choice}' is not an integer")
-                                        continue
-
-                                try:
-
-                                    if filter_delete_service_options[int(filter_delete_service_index_choice)] == 'exit':
-                                
-                                        finished_choosing_filter_delete_service = True
-                                        
-                                        print("\nFilter service options: \n")
-
-                                        for index, option in filter_service_options.items():
-                                            print(f"\t{index}. {option}")
-                                        
-                                        continue
-                                    
-                                    if filter_delete_service_options[int(filter_delete_service_index_choice)] == 'delete by name':
-                                        pass
-                                
-                                except KeyError:
-
-                                    print(f"ERROR: '{filter_service_index_choice}' is not a valid input")
-                                    continue
-
-                        except KeyError:
-                            
-                            print(f"ERROR: '{filter_service_index_choice}' is not a valid input")
-                            continue
-                        
-            except KeyError:
-
-                print(f"ERROR: '{index_choice}' is not a valid input")
-                continue
+        if gmail_service_options[int(index_choice)] == 'exit':
             
-            '''
-    
+            has_user_finished = True
+            
+            return has_user_finished
+
+        if gmail_service_options[int(index_choice)] == 'gmail filters':
+
+            finished_choosing_filter_service = False
+
+            while not finished_choosing_filter_service:
+
+                finished_choosing_filter_service = self.user_choosing_filter_service()
+
     def user_choosing_filter_service(self) -> bool:
 
         filter_service_options_list: list = self.user_interface_constants.filter_service_options
@@ -270,12 +181,6 @@ class Program:
                 print(f"ERROR: '{index_choice}' is not a valid input")
 
                 return has_user_finished
-
-
-
-
-
-
 
     def initialise(self):
 
@@ -387,5 +292,4 @@ if __name__ == "__main__":
         user_interface_constants=main_user_interface_constants
         )
     
-    program.initialise()
     program.run()
