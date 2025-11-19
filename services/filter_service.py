@@ -54,14 +54,46 @@ class FilterService(GmailServiceUser):
 
     def get_cloud_filter_by_id(
             self,
-            filter_id: str):
+            filter_id: str) -> Filter | None:
         
-        filter_dict: dict = self.gmail_service.service.users().settings().filters().get(
-            userId="me",
-            id=filter_id
-            ).execute()
+        try:
+
+            filter_dict: dict = self.gmail_service.service.users().settings().filters().get(
+                userId="me",
+                id=filter_id
+                ).execute()
         
-        return Filter.from_gmail_api_dict(filter_dict)
+            return Filter.from_gmail_api_dict(filter_dict)
+
+        except HttpError as error:
+
+            match error.resp.status:
+
+                case 404:
+                
+                    print(f"\nFilter ID : {filter_id} does not exist in the cloud")
+
+                    return None
+
+    #   TODO test this function
+    def get_all_cloud_filters(self) -> list[Filter] | None:
+
+        results = self.gmail_service.service.users().settings().filters().list(userId="me").execute()
+        filter_dicts = results.get("filter",[])
+
+        filters: list[Filter] = []
+
+        if not filter_dicts:
+            
+            return None
+        
+        for filter_dict in filter_dicts:
+            
+            filter = Filter.from_gmail_api_dict(filter_dict=filter_dict)
+            
+            filters.append(filter)
+        
+        return filters
 
     def save_filter_to_local_json_file(
             self,
@@ -80,19 +112,15 @@ class FilterService(GmailServiceUser):
         print(f"\nFilter saved: {filepath}\n")
         print(f"{self.__str__()}")
 
-    def delete_filter(
+    def delete_cloud_filter_by_id(
             self,
             filter_id: str,
-            suppress_print: bool) -> Filter:
+            suppress_print: bool) -> Filter | None:
 
-        try:
+            filter = self.get_cloud_filter_by_id(filter_id)
 
-            filter_dict: dict = self.gmail_service.service.users().settings().filters().get(
-                userId="me",
-                id=filter_id
-                ).execute()
-            
-            filter = Filter.from_gmail_api_dict(filter_dict)
+            if filter == None:
+                return None
 
             self.gmail_service.service.users().settings().filters().delete(
                 userId="me",
@@ -102,25 +130,17 @@ class FilterService(GmailServiceUser):
             if suppress_print:
                 return filter
             
-            print(f"\nFilter deleted:")
+            print(f"\nFilter deleted from cloud:")
             print(f"\n{filter.__str__()}")
 
             #   TODO need to delete the local saved json file as well. Should implement a file that stores the filter name and ids as key value pairs
 
             return filter
 
-        except HttpError as error:
-
-            match error.resp.status:
-
-                case 404:
-                
-                    print(f"\nFilter ID : {filter_id} does not exist")
-
+    #   TODO test this function
     def print_all_filters(self) -> None:
 
-        results = self.gmail_service.service.users().settings().filters().list(userId="me").execute()
-        filters = results.get("filter",[])
+        filters: list[Filter] | None = self.get_all_cloud_filters()
 
         if not filters:
             print("\nNo filters found")
@@ -128,8 +148,6 @@ class FilterService(GmailServiceUser):
         
         print("\nFilters:")
 
-        for filter_dict in filters:
-            
-            filter = Filter.from_gmail_api_dict(filter_dict=filter_dict)
-            
+        for filter in filters:
+        
             print(f"\n{filter.__str__()}")

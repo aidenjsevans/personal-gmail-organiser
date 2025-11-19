@@ -1,5 +1,7 @@
 import os
 
+from models.filters.filter import Filter
+
 from services.gmail_service import GmailService
 from services.block_filter_service import BlockFilterService
 from services.filter_service import FilterService
@@ -12,6 +14,7 @@ from constants.user_interface.main_user_interface_constants import MainUserInter
 
 from utilities.io_helper import IOHelper
 from utilities.user_interface_helper import UserInterfaceHelper
+from utilities.random_helper import RandomHelper
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.modify",
           "https://www.googleapis.com/auth/gmail.settings.basic"]
@@ -51,7 +54,6 @@ class Program:
         while not finished_choosing_gmail_service:
 
             finished_choosing_gmail_service = self.user_choosing_gmail_service()
-
 
     def user_choosing_gmail_service(self) -> bool:
 
@@ -159,7 +161,7 @@ class Program:
 
                     filter_id_input: str = input("\nFilter ID: ")
 
-                    self.filter_service.delete_filter(
+                    self.filter_service.delete_cloud_filter_by_id(
                         filter_id = filter_id_input, 
                         suppress_print = False
                         )
@@ -279,7 +281,43 @@ class Program:
                         raise Exception(f"Path name '{path_name}' is not recognised")
             
             print(f"\nRead directory paths: {dir_paths_filepath}")
+    
+    def cloud_sync_filters(self):
+
+        filter_id_name_pairs_filepath: str = os.path.join("data", "id_name_pairs.json")
+        filter_no_name_count_filepath: str = os.path.join("data", "filter_no_name_count.txt")
+
+        if not os.path.exists(filter_id_name_pairs_filepath):
+
+            IOHelper.write_dict_to_json_file(
+                data = {}, 
+                filepath = filter_id_name_pairs_filepath
+                )
             
+        filter_no_name_count: int | None = None
+
+        #   TODO consider how to deal with the count number being too high
+
+        if not os.path.exists(filter_no_name_count_filepath):
+
+            IOHelper.write_line_to_txt_file(
+                filepath = filter_no_name_count_filepath,
+                line = "1"
+            )
+
+            filter_no_name_count = 1
+        
+        filters: list[Filter] | None = self.filter_service.get_all_cloud_filters()
+
+        if filters == None:
+
+            return
+        
+        #   TODO need a way to determine if a filter is a block filter
+
+        for filter in filters:
+            pass
+
 if __name__ == "__main__":
     
     main_user_interface_constants = MainUserInterfaceConstants()

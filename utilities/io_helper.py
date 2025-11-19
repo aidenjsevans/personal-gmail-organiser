@@ -4,7 +4,7 @@ import json
 class IOHelper:
 
     @staticmethod
-    def read_lines_txt_file(filepath: str) -> list[str] | None:
+    def read_txt_file_to_list(filepath: str) -> list[str] | None:
         
         lines: list[str] = None
         
@@ -14,7 +14,16 @@ class IOHelper:
         return lines
     
     @staticmethod
-    def read_rows_csv_file(
+    def write_line_to_txt_file(
+        filepath: str,
+        line: str,
+        mode: str = "w") -> None:
+
+        with open(filepath, mode=mode) as txt_file:
+            txt_file.write(f"{line}\n")
+    
+    @staticmethod
+    def read_rows_from_csv_file(
         filepath: str,
         has_headers: bool) -> tuple[list[list[str]], list[str] | None]:
 
