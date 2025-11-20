@@ -25,7 +25,9 @@ class Program:
             self,
             scopes: list[str],
             service_version: str,
-            user_interface_constants: UserInterfaceConstants) -> None:
+            user_interface_constants: UserInterfaceConstants,
+            number_of_random_chars: int = 5,
+            name_collision_count_limit: int = 10) -> None:
         
         self.scopes = scopes
         self.service_version = service_version
@@ -40,6 +42,9 @@ class Program:
         self.block_filter_service: BlockFilterService | None = None
         self.label_service: LabelService | None = None
         self.message_service: MessageService | None =  None
+
+        self.number_of_random_chars = number_of_random_chars
+        self.name_collision_count_limit = name_collision_count_limit
 
     def run(self) -> None:
 
@@ -120,8 +125,14 @@ class Program:
                 finished_choosing_delete_service_option: bool = False
 
                 while not finished_choosing_delete_service_option:
-
                     finished_choosing_delete_service_option = self.user_choosing_delete_filter_service()
+
+            if filter_service_options[int(index_choice)] == "create filter":
+
+                finished_choosing_create_service_option: bool = False
+
+                while not finished_choosing_create_service_option:
+                    pass
 
             return has_user_finished
         
@@ -173,6 +184,55 @@ class Program:
                 print(f"ERROR: '{index_choice}' is not a valid input")
 
                 return has_user_finished
+
+    def user_choosing_create_filter_service(self) -> bool:
+
+        filter_create_service_options: dict = UserInterfaceHelper.get_service_options(
+            user_interface_constants = self.user_interface_constants,
+            attribute_name = "filter_create_service_options",
+            service_name = "Filter create"
+            )
+        
+        index_choice: str = input("\nSelect a filter create service: ")
+
+        has_user_finished = False
+
+        if not index_choice.isdigit():
+
+            print(f"ERROR: '{index_choice}' is not an integer")
+
+            return has_user_finished
+
+        try:
+
+            if filter_create_service_options[int(index_choice)] == 'exit':
+        
+                has_user_finished = True
+
+                return has_user_finished
+        
+            if filter_create_service_options[int(index_choice)] == 'create filter':
+
+                pass
+                
+                return has_user_finished
+
+        except KeyError:
+
+            print(f"ERROR: '{index_choice}' is not a valid input")
+
+            return has_user_finished
+
+
+    def user_creating_filter(self) -> bool:
+
+        has_user_finished = False
+
+        #   TODO validate the filter name
+        filter_name: str = input("Filter name: ")
+
+        
+
 
     def initialise(self):
 
@@ -275,7 +335,7 @@ class Program:
                     case "DEFAULT_BLOCK_FILTER_DIR":
 
                         self.block_filter_data_dir = os.path.join(*default_path_list[1:])
-                    
+
                     case _:
                         
                         raise Exception(f"Path name '{path_name}' is not recognised")
@@ -285,7 +345,6 @@ class Program:
     def cloud_sync_filters(self):
 
         filter_id_name_pairs_filepath: str = os.path.join("data", "id_name_pairs.json")
-        filter_no_name_count_filepath: str = os.path.join("data", "filter_no_name_count.txt")
 
         if not os.path.exists(filter_id_name_pairs_filepath):
 
@@ -293,31 +352,61 @@ class Program:
                 data = {}, 
                 filepath = filter_id_name_pairs_filepath
                 )
-            
-        filter_no_name_count: int | None = None
-
-        #   TODO consider how to deal with the count number being too high
-
-        if not os.path.exists(filter_no_name_count_filepath):
-
-            IOHelper.write_line_to_txt_file(
-                filepath = filter_no_name_count_filepath,
-                line = "1"
-            )
-
-            filter_no_name_count = 1
         
         filters: list[Filter] | None = self.filter_service.get_all_cloud_filters()
 
         if filters == None:
-
             return
         
         #   TODO need a way to determine if a filter is a block filter
 
-        for filter in filters:
-            pass
+        id_name_pairs_dict: dict = IOHelper.read_dict_from_local_json_file(filter_id_name_pairs_filepath)
 
+        #   TODO come back to this (this should not happen)
+        if id_name_pairs_dict == None:
+            raise Exception()
+
+        for filter in filters:
+
+            if filter.filter_id in id_name_pairs_dict:
+                continue
+
+            if filter.name == None:
+
+                name_collision_count: int = 0
+                
+                while True:
+                    
+                    #   TODO consider how to deal with this outcome
+                    if name_collision_count > self.name_collision_count_limit:
+                        raise Exception(f"Name collision count of {self.name_collision_count_limit} exceeded")
+
+                    random_alphabetic_code: str = RandomHelper.create_random_alphabetic_code(
+                        number_of_chars = self.number_of_random_chars
+                        )
+                    
+                    random_filter_name: str = f"filter_{random_alphabetic_code}"
+
+                    filepath: str = os.path.join(self.filter_data_dir, random_filter_name)
+
+                    if os.path.exists(filepath):
+                        name_collision_count += 1
+                        continue
+                    
+                    filter.name = random_filter_name
+                    break
+            
+            filter_name: str = filter.name
+            filter_id: str = filter.filter_id
+
+            id_name_pairs_dict[filter_id] = filter_name
+            
+            self.filter_service.save_filter_to_local_json_file(filter)
+
+        IOHelper.write_dict_to_json_file(
+            data = filter_id_name_pairs_filepath,
+            filepath = filter_id_name_pairs_filepath)
+            
 if __name__ == "__main__":
     
     main_user_interface_constants = MainUserInterfaceConstants()

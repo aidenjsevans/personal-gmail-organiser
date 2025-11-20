@@ -20,6 +20,10 @@ class MainUserInterfaceConstants(UserInterfaceConstants):
             "delete by name",
             "delete by id"
         ]
+
+        self.__filter_create_service_options: list = [
+            "create filter",
+        ]
         
     @property
     def gmail_service_options(self) -> str:

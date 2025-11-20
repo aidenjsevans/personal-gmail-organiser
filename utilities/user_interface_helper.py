@@ -47,4 +47,5 @@ class UserInterfaceHelper:
             print(f"\t{index}. {option}")
 
         return service_options
+    
 

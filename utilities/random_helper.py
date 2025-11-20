@@ -10,7 +10,7 @@ class RandomHelper:
     @typechecked
     def create_random_alphabetic_code(
         number_of_chars: int,
-        char_set: set[str] = set(string.ascii_lowercase),
+        char_set: set[str] = set(string.ascii_lowercase + string.ascii_uppercase),
         suppress_print: bool = True) -> str:
 
         if number_of_chars <= 0:
