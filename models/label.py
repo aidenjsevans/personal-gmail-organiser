@@ -52,7 +52,6 @@ class Label:
             type=type
             )
 
-
     def __str__(self) -> str:
         
         values: list[str] = []

@@ -6,7 +6,7 @@ class MainFilterConstants(FilterConstants):
         
         self.__filter_criteria_options = set([
             "from",
-            "to",
+            #"to",
             #"subject",
             #"query",
             #"negatedQuery",
@@ -17,7 +17,7 @@ class MainFilterConstants(FilterConstants):
 
         self.__filter_action_options = set([
             "addLabelIds",
-            "removeLabelIds",
+            #"removeLabelIds",
             #"forward",
             #"markRead",
             #"archive",

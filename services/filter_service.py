@@ -149,5 +149,4 @@ class FilterService(GmailServiceUser):
         print("\nFilters:")
 
         for filter in filters:
-        
             print(f"\n{filter.__str__()}")
