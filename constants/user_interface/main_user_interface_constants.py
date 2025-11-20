@@ -39,4 +39,4 @@ class MainUserInterfaceConstants(UserInterfaceConstants):
     
     @property
     def filter_create_service_options(self) -> str:
-        pass
+        return self.__filter_create_service_options

@@ -11,10 +11,12 @@ from services.message_service import MessageService
 from constants.authentication.main_authentication_path import MainAuthenticationPath
 from constants.user_interface.user_interface_constants import UserInterfaceConstants
 from constants.user_interface.main_user_interface_constants import MainUserInterfaceConstants
+from constants.filters.filter_constants import FilterConstants
 
 from utilities.io_helper import IOHelper
 from utilities.user_interface_helper import UserInterfaceHelper
 from utilities.random_helper import RandomHelper
+from utilities.filter_helper import FilterHelper
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.modify",
           "https://www.googleapis.com/auth/gmail.settings.basic"]
@@ -26,12 +28,14 @@ class Program:
             scopes: list[str],
             service_version: str,
             user_interface_constants: UserInterfaceConstants,
+            filter_constants: FilterConstants,
             number_of_random_chars: int = 5,
             name_collision_count_limit: int = 10) -> None:
         
         self.scopes = scopes
         self.service_version = service_version
         self.user_interface_constants = user_interface_constants
+        self.filter_constants = filter_constants
 
         self.authentication_data_dir: str | None = None
         self.filter_data_dir: str | None = None
@@ -231,9 +235,61 @@ class Program:
         #   TODO validate the filter name
         filter_name: str = input("Filter name: ")
 
+        #   TODO allow user to add multiple actions and criteria
+        filter_criteria_options: dict = FilterHelper.get_filter_options(
+            filter_constants = self.filter_constants,
+            attribute_name = "filter_criteria_options",
+            option_name = "Criteria"
+            )
+        
+        criteria_index_choice: str = input("\nSelect a filter criteria option: ")
+        filter_criteria: dict = {}
+
+        if not criteria_index_choice.isdigit():
+
+            print(f"ERROR: '{criteria_index_choice}' is not an integer")
+
+            return has_user_finished
+
+        try:
+
+            if filter_criteria_options[int(criteria_index_choice)] == 'exit':
+
+                has_user_finished = True
+
+                return has_user_finished
+            
+            if filter_criteria_options[int(criteria_index_choice)] == 'from':
+                
+                #   TODO validate email format
+                sender_email_input: str = input("Sender email: ")
+                filter_criteria['from'] = sender_email_input
+
+        except KeyError:
+
+            print(f"ERROR: '{criteria_index_choice}' is not a valid input")
+
+            return has_user_finished
+        
+        action_index_choice: str = input("\nSelect a filter action option: ")
+        filter_action: dict = {}
+
+        #   TODO encapsulate this check into a function to reduce repetition
+        if not action_index_choice.isdigit():
+
+            print(f"ERROR: '{action_index_choice}' is not an integer")
+
+            return has_user_finished
         
 
 
+
+
+
+
+
+
+        
     def initialise(self):
 
         self.initialise_dir_paths()
