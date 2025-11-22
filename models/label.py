@@ -3,13 +3,13 @@ class Label:
     
     def __init__(
             self, 
-            id: str,
+            label_id: str,
             name: str,
             message_list_visibility: str | None,
             label_list_visibility: str | None,
             type: str):
         
-        self.id = id
+        self.label_id = label_id
         self.name = name
         self.message_list_visibility = message_list_visibility
         self.label_list_visibility = label_list_visibility
@@ -17,10 +17,11 @@ class Label:
     
     @classmethod
     def from_dict(cls, label_dict: dict) -> Label:
+        
         keys: list[str] = set(label_dict.keys())
 
         if "id" in keys:
-            id: str = label_dict["id"]
+            label_id: str = label_dict["id"]
         else:
             raise Exception("The input dictionary must contain an 'id' key")
 
@@ -45,7 +46,7 @@ class Label:
             raise Exception("The input dictionary must contain a 'type' key")
 
         return cls(
-            id=id,
+            label_id=label_id,
             name=name,
             message_list_visibility=message_list_visibility,
             label_list_visibility=label_list_visibility,
@@ -56,7 +57,7 @@ class Label:
         
         values: list[str] = []
 
-        values.append(f"\tID: {self.id}")
+        values.append(f"\tID: {self.label_id}")
         values.append(f"\tName: {self.name}")
         values.append(f"\tMessage list visibility: {self.message_list_visibility}")
         values.append(f"\tLabel list visibility: {self.label_list_visibility}")

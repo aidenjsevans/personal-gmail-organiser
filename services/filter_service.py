@@ -59,8 +59,8 @@ class FilterService(GmailServiceUser):
         try:
 
             filter_dict: dict = self.gmail_service.service.users().settings().filters().get(
-                userId="me",
-                id=filter_id
+                userId = "me",
+                id = filter_id
                 ).execute()
         
             return Filter.from_gmail_api_dict(filter_dict)
@@ -109,9 +109,29 @@ class FilterService(GmailServiceUser):
             filepath = filepath
             )
         
-        print(f"\nFilter saved: {filepath}\n")
-        print(f"{self.__str__()}")
+        print(f"\nFilter saved to local file: {filepath}\n")
+        print(f"{filter.__str__()}")
 
+    #   TODO validate filter input
+    def save_filter_to_cloud(
+            self, 
+            filter: Filter) -> Filter:
+
+        filter_config: dict = filter.config
+
+        created_filter_dict: dict = self.gmail_service.service.users().settings().filters().create(
+            userId = "me",
+            body = filter_config
+            ).execute()
+        
+        created_filter_id = created_filter_dict["id"]
+        filter.filter_id = created_filter_id
+
+        print(f"\nFilter uploaded to cloud:\n")
+        print(f"{filter.__str__()}")
+
+        return filter
+        
     def delete_cloud_filter_by_id(
             self,
             filter_id: str,

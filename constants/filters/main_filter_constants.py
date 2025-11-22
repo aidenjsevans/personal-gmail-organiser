@@ -4,6 +4,7 @@ class MainFilterConstants(FilterConstants):
 
     def __init__(self):
         
+        #   TODO add functionality for other criteria
         self.__filter_criteria_options = set([
             "from",
             #"to",
@@ -15,6 +16,7 @@ class MainFilterConstants(FilterConstants):
             #"sizeComparison"
         ])
 
+        #   TODO add functionality for other actions
         self.__filter_action_options = set([
             "addLabelIds",
             #"removeLabelIds",

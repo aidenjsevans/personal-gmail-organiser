@@ -1,6 +1,7 @@
 import os
 
 from models.filters.filter import Filter
+from models.label import Label
 
 from services.gmail_service import GmailService
 from services.block_filter_service import BlockFilterService
@@ -12,6 +13,9 @@ from constants.authentication.main_authentication_path import MainAuthentication
 from constants.user_interface.user_interface_constants import UserInterfaceConstants
 from constants.user_interface.main_user_interface_constants import MainUserInterfaceConstants
 from constants.filters.filter_constants import FilterConstants
+from constants.filters.main_filter_constants import MainFilterConstants
+from constants.labels.label_constants import LabelConstants
+from constants.labels.main_label_constants import MainLabelConstants
 
 from utilities.io_helper import IOHelper
 from utilities.user_interface_helper import UserInterfaceHelper
@@ -29,6 +33,7 @@ class Program:
             service_version: str,
             user_interface_constants: UserInterfaceConstants,
             filter_constants: FilterConstants,
+            label_constants: LabelConstants,
             number_of_random_chars: int = 5,
             name_collision_count_limit: int = 10) -> None:
         
@@ -36,6 +41,7 @@ class Program:
         self.service_version = service_version
         self.user_interface_constants = user_interface_constants
         self.filter_constants = filter_constants
+        self.label_constants = label_constants
 
         self.authentication_data_dir: str | None = None
         self.filter_data_dir: str | None = None
@@ -136,7 +142,7 @@ class Program:
                 finished_choosing_create_service_option: bool = False
 
                 while not finished_choosing_create_service_option:
-                    pass
+                    finished_choosing_create_service_option = self.user_choosing_create_filter_service()
 
             return has_user_finished
         
@@ -217,7 +223,10 @@ class Program:
         
             if filter_create_service_options[int(index_choice)] == 'create filter':
 
-                pass
+                finished_creating_filter: bool = False
+
+                while not finished_creating_filter:
+                    finished_creating_filter = self.user_creating_filter()
                 
                 return has_user_finished
 
@@ -227,7 +236,7 @@ class Program:
 
             return has_user_finished
 
-
+    #   TODO break down into smaller sub methods
     def user_creating_filter(self) -> bool:
 
         has_user_finished = False
@@ -271,6 +280,13 @@ class Program:
 
             return has_user_finished
         
+        #   TODO allow user to add multiple actions and criteria
+        filter_action_options: dict = FilterHelper.get_filter_options(
+            filter_constants = self.filter_constants,
+            attribute_name = "filter_action_options",
+            option_name = "Action"
+            )
+        
         action_index_choice: str = input("\nSelect a filter action option: ")
         filter_action: dict = {}
 
@@ -281,15 +297,74 @@ class Program:
 
             return has_user_finished
         
+        try:
 
+            if filter_action_options[int(action_index_choice)] == 'exit':
 
+                has_user_finished = True
 
+                return has_user_finished
+            
+            #   TODO allow user to add multiple label ids
+            if filter_action_options[int(action_index_choice)] == 'addLabelIds':
 
+                label_options: dict = self.label_service.get_label_options()
+                add_label_ids: list[str] = []
 
+                print("\nLabels: \n")
 
+                for index, label in label_options.items():
 
+                    if isinstance(label, Label):
 
+                        print(f"\t{index}. {label.name}")
+                    
+                    else:
+                        print(f"\t{index}. {label}")
+                
+                label_index_choice: str = input("\nSelect a label: ")
+
+                #   TODO encapsulate this check into a function to reduce repetition
+                if not label_index_choice.isdigit():
+
+                    print(f"ERROR: '{label_index_choice}' is not an integer")
+
+                    return has_user_finished
+                
+                try:
+
+                    label_choice: Label = label_options[int(label_index_choice)]
+                    label_id: str = label_choice.label_id
+
+                    add_label_ids.append(label_id)
+
+                    filter_action['addLabelIds'] = add_label_ids
+                
+                except KeyError:
+
+                    print(f"ERROR: '{label_index_choice}' is not a valid input")
+
+                    return has_user_finished
         
+        except KeyError:
+
+            print(f"ERROR: '{action_index_choice}' is not a valid input")
+
+            return has_user_finished
+        
+        created_filter: Filter = Filter(
+            name = filter_name,
+            criteria = filter_criteria,
+            action = filter_action
+        )
+
+        created_filter_with_id: Filter = self.filter_service.save_filter_to_cloud(created_filter)
+        self.filter_service.save_filter_to_local_json_file(created_filter_with_id)
+
+        has_user_finished = True
+
+        return has_user_finished
+                
     def initialise(self):
 
         self.initialise_dir_paths()
@@ -322,7 +397,12 @@ class Program:
             )
         
         block_filter_service = BlockFilterService(gmail_service)
-        label_service = LabelService(gmail_service)
+        
+        label_service = LabelService(
+            gmail_service = gmail_service,
+            label_constants = self.label_constants
+            )
+        
         message_service =  MessageService(gmail_service)
 
         self.gmail_service = gmail_service
@@ -466,11 +546,30 @@ class Program:
 if __name__ == "__main__":
     
     main_user_interface_constants = MainUserInterfaceConstants()
+    main_filter_constants = MainFilterConstants()
+    main_label_constants = MainLabelConstants()
 
     program: Program = Program(
-        scopes=SCOPES,
-        service_version="v1",
-        user_interface_constants=main_user_interface_constants
+        scopes = SCOPES,
+        service_version = "v1",
+        user_interface_constants = main_user_interface_constants,
+        filter_constants = main_filter_constants,
+        label_constants = main_label_constants 
         )
     
     program.run()
+ 
+    """
+    gmail_service = GmailService(
+            scopes = SCOPES,
+            authentication_data_dir = os.path.join("data", "authentication"),
+            service_version = "v1"
+            )
+    
+    label_service = LabelService(gmail_service)
+
+    for label in label_service.get_all_labels():
+        print(f"\n{label.__str__()}")
+    """
+    
+
