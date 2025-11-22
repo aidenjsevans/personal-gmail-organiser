@@ -46,6 +46,7 @@ class Program:
         self.authentication_data_dir: str | None = None
         self.filter_data_dir: str | None = None
         self.block_filter_data_dir: str | None = None
+        self.filter_id_name_pairs_filepath: str | None = None
 
         self.gmail_service: GmailService | None = None
         self.filter_service: FilterService | None = None
@@ -55,6 +56,10 @@ class Program:
 
         self.number_of_random_chars = number_of_random_chars
         self.name_collision_count_limit = name_collision_count_limit
+
+        self.has_initialised_dir_paths: bool = False
+        self.has_initialised_filepaths: bool = False
+        self.has_initialised_services: bool = False
 
     def run(self) -> None:
 
@@ -372,10 +377,18 @@ class Program:
 
         has_successfully_initialised: bool = True
 
+        if not self.has_initialised_filepaths:
+            has_successfully_initialised = False
+
+        if not self.has_initialised_dir_paths:
+            has_successfully_initialised = False
+        
+        if not self.has_initialised_services:
+            has_successfully_initialised = False
+
         for value in self.__dict__.values():
 
             if value == None:
-
                 has_successfully_initialised = False
                 break
         
@@ -384,6 +397,9 @@ class Program:
     
     #   TODO need to add a feature to ensure that the services are initialised after the dir paths. Could use some sort of bool
     def initialise_services(self):
+
+        if not self.has_initialised_filepaths or not self.has_initialised_dir_paths:
+            raise Exception("Program failed to initialise")
 
         gmail_service = GmailService(
             scopes = self.scopes,
@@ -410,6 +426,23 @@ class Program:
         self.block_filter_service = block_filter_service
         self.label_service = label_service
         self.message_service = message_service
+
+        self.has_initialised_services = True
+
+    def initialise_filepaths(self):
+
+        self.filter_id_name_pairs_filepath: str = os.path.join("data", "id_name_pairs.json")
+
+        if not os.path.exists(self.filter_id_name_pairs_filepath):
+
+            IOHelper.write_dict_to_json_file(
+                data = {}, 
+                filepath = self.filter_id_name_pairs_filepath
+                )
+            
+        print(f"\nWritten filepath: {self.filter_id_name_pairs_filepath}")
+        
+        self.has_initialised_filepaths = True
 
     def initialise_dir_paths(self):
 
@@ -477,6 +510,8 @@ class Program:
                         raise Exception(f"Path name '{path_name}' is not recognised")
             
             print(f"\nRead directory paths: {dir_paths_filepath}")
+        
+        self.has_initialised_dir_paths = True
     
     def cloud_sync_filters(self):
 
