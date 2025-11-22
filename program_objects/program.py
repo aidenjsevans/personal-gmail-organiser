@@ -1,7 +1,6 @@
-import os
-
-from models.filters.filter import Filter
-from models.label import Label
+from constants.user_interface.user_interface_constants import UserInterfaceConstants
+from constants.filters.filter_constants import FilterConstants
+from constants.labels.label_constants import LabelConstants
 
 from services.gmail_service import GmailService
 from services.block_filter_service import BlockFilterService
@@ -9,21 +8,11 @@ from services.filter_service import FilterService
 from services.label_service import LabelService
 from services.message_service import MessageService
 
-from constants.authentication.main_authentication_path import MainAuthenticationPath
-from constants.user_interface.user_interface_constants import UserInterfaceConstants
-from constants.user_interface.main_user_interface_constants import MainUserInterfaceConstants
-from constants.filters.filter_constants import FilterConstants
-from constants.filters.main_filter_constants import MainFilterConstants
-from constants.labels.label_constants import LabelConstants
-from constants.labels.main_label_constants import MainLabelConstants
-
-from utilities.io_helper import IOHelper
 from utilities.user_interface_helper import UserInterfaceHelper
-from utilities.random_helper import RandomHelper
 from utilities.filter_helper import FilterHelper
 
-SCOPES = ["https://www.googleapis.com/auth/gmail.modify",
-          "https://www.googleapis.com/auth/gmail.settings.basic"]
+from models.label import Label
+from models.filters.filter import Filter
 
 class Program:
     
@@ -33,12 +22,11 @@ class Program:
             service_version: str,
             user_interface_constants: UserInterfaceConstants,
             filter_constants: FilterConstants,
-            label_constants: LabelConstants,
-            number_of_random_chars: int = 5,
-            name_collision_count_limit: int = 10) -> None:
+            label_constants: LabelConstants) -> None:
         
         self.scopes = scopes
         self.service_version = service_version
+        
         self.user_interface_constants = user_interface_constants
         self.filter_constants = filter_constants
         self.label_constants = label_constants
@@ -46,34 +34,15 @@ class Program:
         self.authentication_data_dir: str | None = None
         self.filter_data_dir: str | None = None
         self.block_filter_data_dir: str | None = None
+        
         self.filter_id_name_pairs_filepath: str | None = None
+        self.dir_paths_filepath: str | None = None
 
         self.gmail_service: GmailService | None = None
         self.filter_service: FilterService | None = None
         self.block_filter_service: BlockFilterService | None = None
         self.label_service: LabelService | None = None
         self.message_service: MessageService | None =  None
-
-        self.number_of_random_chars = number_of_random_chars
-        self.name_collision_count_limit = name_collision_count_limit
-
-        self.has_initialised_dir_paths: bool = False
-        self.has_initialised_filepaths: bool = False
-        self.has_initialised_services: bool = False
-
-    def run(self) -> None:
-
-        os.system('cls')
-
-        self.initialise()
-        
-        print("\nGMAIL ORGANISER\n")
-
-        finished_choosing_gmail_service: bool = False
-
-        while not finished_choosing_gmail_service:
-
-            finished_choosing_gmail_service = self.user_choosing_gmail_service()
 
     def user_choosing_gmail_service(self) -> bool:
 
@@ -92,20 +61,28 @@ class Program:
             print(f"ERROR: '{index_choice}' is not an integer")
 
             return has_user_finished
+        
+        try:
 
-        if gmail_service_options[int(index_choice)] == 'exit':
-            
-            has_user_finished = True
-            
+            if gmail_service_options[int(index_choice)] == 'exit':
+                
+                has_user_finished = True
+                
+                return has_user_finished
+
+            if gmail_service_options[int(index_choice)] == 'gmail filters':
+
+                finished_choosing_filter_service = False
+
+                while not finished_choosing_filter_service:
+
+                    finished_choosing_filter_service = self.user_choosing_filter_service()
+
+        except KeyError:
+
+            print(f"ERROR: '{index_choice}' is not a valid input")
+
             return has_user_finished
-
-        if gmail_service_options[int(index_choice)] == 'gmail filters':
-
-            finished_choosing_filter_service = False
-
-            while not finished_choosing_filter_service:
-
-                finished_choosing_filter_service = self.user_choosing_filter_service()
 
     def user_choosing_filter_service(self) -> bool:
 
@@ -370,241 +347,5 @@ class Program:
 
         return has_user_finished
                 
-    def initialise(self):
 
-        self.initialise_dir_paths()
-        self.initialise_services()
-
-        has_successfully_initialised: bool = True
-
-        if not self.has_initialised_filepaths:
-            has_successfully_initialised = False
-
-        if not self.has_initialised_dir_paths:
-            has_successfully_initialised = False
-        
-        if not self.has_initialised_services:
-            has_successfully_initialised = False
-
-        for value in self.__dict__.values():
-
-            if value == None:
-                has_successfully_initialised = False
-                break
-        
-        if not has_successfully_initialised:
-            raise Exception("Program failed to initialise")
-    
-    #   TODO need to add a feature to ensure that the services are initialised after the dir paths. Could use some sort of bool
-    def initialise_services(self):
-
-        if not self.has_initialised_filepaths or not self.has_initialised_dir_paths:
-            raise Exception("Program failed to initialise")
-
-        gmail_service = GmailService(
-            scopes = self.scopes,
-            authentication_data_dir = self.authentication_data_dir,
-            service_version = self.service_version
-            )
-        
-        filter_service = FilterService(
-            gmail_service = gmail_service,
-            filter_data_dir = self.filter_data_dir
-            )
-        
-        block_filter_service = BlockFilterService(gmail_service)
-        
-        label_service = LabelService(
-            gmail_service = gmail_service,
-            label_constants = self.label_constants
-            )
-        
-        message_service =  MessageService(gmail_service)
-
-        self.gmail_service = gmail_service
-        self.filter_service = filter_service
-        self.block_filter_service = block_filter_service
-        self.label_service = label_service
-        self.message_service = message_service
-
-        self.has_initialised_services = True
-
-    def initialise_filepaths(self):
-
-        self.filter_id_name_pairs_filepath: str = os.path.join("data", "id_name_pairs.json")
-
-        if not os.path.exists(self.filter_id_name_pairs_filepath):
-
-            IOHelper.write_dict_to_json_file(
-                data = {}, 
-                filepath = self.filter_id_name_pairs_filepath
-                )
-            
-        print(f"\nWritten filepath: {self.filter_id_name_pairs_filepath}")
-        
-        self.has_initialised_filepaths = True
-
-    def initialise_dir_paths(self):
-
-        dir_paths_filepath: str = os.path.join("data", "dir_paths.csv")
-
-        if not os.path.exists(dir_paths_filepath):
-
-            default_paths: list = []
-
-            default_authentication_dir_path_list: list = [
-                "DEFAULT_AUTHENTICATION_DIR", 
-                "data", 
-                "authentication"]
-
-            default_filter_dir_path_list: list = [
-                "DEFAULT_FILTER_DIR", 
-                "data", 
-                "filters"]
-            
-            default_block_filter_dir_path_list: list = [
-                "DEFAULT_BLOCK_FILTER_DIR", 
-                "data", 
-                "block_filters"]
-
-            default_paths.append(default_authentication_dir_path_list)
-            default_paths.append(default_filter_dir_path_list)
-            default_paths.append(default_block_filter_dir_path_list)
-
-            IOHelper.write_lists_to_csv_file(
-                filepath=dir_paths_filepath,
-                lists_arg=default_paths,
-                )
-            
-            self.authentication_data_dir = os.path.join(*default_authentication_dir_path_list[1:])
-            self.filter_data_dir = os.path.join(*default_filter_dir_path_list[1:])
-            self.block_filter_data_dir = os.path.join(*default_block_filter_dir_path_list[1:])
-
-            print(f"\nWritten directory paths: {dir_paths_filepath}")
-        
-        else:
-
-            default_path_lists: list[list] = IOHelper.read_csv_file_to_lists(dir_paths_filepath)
-
-            while default_path_lists:
-
-                default_path_list: list = default_path_lists.pop()
-                path_name: str = default_path_list[0]
-
-                match path_name:
-
-                    case "DEFAULT_AUTHENTICATION_DIR":
-                        
-                        self.authentication_data_dir = os.path.join(*default_path_list[1:])
-                    
-                    case "DEFAULT_FILTER_DIR":
-
-                        self.filter_data_dir = os.path.join(*default_path_list[1:])
-                    
-                    case "DEFAULT_BLOCK_FILTER_DIR":
-
-                        self.block_filter_data_dir = os.path.join(*default_path_list[1:])
-
-                    case _:
-                        
-                        raise Exception(f"Path name '{path_name}' is not recognised")
-            
-            print(f"\nRead directory paths: {dir_paths_filepath}")
-        
-        self.has_initialised_dir_paths = True
-    
-    def cloud_sync_filters(self):
-
-        filter_id_name_pairs_filepath: str = os.path.join("data", "id_name_pairs.json")
-
-        if not os.path.exists(filter_id_name_pairs_filepath):
-
-            IOHelper.write_dict_to_json_file(
-                data = {}, 
-                filepath = filter_id_name_pairs_filepath
-                )
-        
-        filters: list[Filter] | None = self.filter_service.get_all_cloud_filters()
-
-        if filters == None:
-            return
-        
-        #   TODO need a way to determine if a filter is a block filter
-
-        id_name_pairs_dict: dict = IOHelper.read_dict_from_local_json_file(filter_id_name_pairs_filepath)
-
-        #   TODO come back to this (this should not happen)
-        if id_name_pairs_dict == None:
-            raise Exception()
-
-        for filter in filters:
-
-            if filter.filter_id in id_name_pairs_dict:
-                continue
-
-            if filter.name == None:
-
-                name_collision_count: int = 0
-                
-                while True:
-                    
-                    #   TODO consider how to deal with this outcome
-                    if name_collision_count > self.name_collision_count_limit:
-                        raise Exception(f"Name collision count of {self.name_collision_count_limit} exceeded")
-
-                    random_alphabetic_code: str = RandomHelper.create_random_alphabetic_code(
-                        number_of_chars = self.number_of_random_chars
-                        )
-                    
-                    random_filter_name: str = f"filter_{random_alphabetic_code}"
-
-                    filepath: str = os.path.join(self.filter_data_dir, random_filter_name)
-
-                    if os.path.exists(filepath):
-                        name_collision_count += 1
-                        continue
-                    
-                    filter.name = random_filter_name
-                    break
-            
-            filter_name: str = filter.name
-            filter_id: str = filter.filter_id
-
-            id_name_pairs_dict[filter_id] = filter_name
-            
-            self.filter_service.save_filter_to_local_json_file(filter)
-
-        IOHelper.write_dict_to_json_file(
-            data = filter_id_name_pairs_filepath,
-            filepath = filter_id_name_pairs_filepath)
-            
-if __name__ == "__main__":
-    
-    main_user_interface_constants = MainUserInterfaceConstants()
-    main_filter_constants = MainFilterConstants()
-    main_label_constants = MainLabelConstants()
-
-    program: Program = Program(
-        scopes = SCOPES,
-        service_version = "v1",
-        user_interface_constants = main_user_interface_constants,
-        filter_constants = main_filter_constants,
-        label_constants = main_label_constants 
-        )
-    
-    program.run()
- 
-    """
-    gmail_service = GmailService(
-            scopes = SCOPES,
-            authentication_data_dir = os.path.join("data", "authentication"),
-            service_version = "v1"
-            )
-    
-    label_service = LabelService(gmail_service)
-
-    for label in label_service.get_all_labels():
-        print(f"\n{label.__str__()}")
-    """
-    
-
+  
