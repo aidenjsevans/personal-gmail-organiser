@@ -55,7 +55,7 @@ class ProgramInitialiser():
 
     def initialise_filepaths(self):
 
-        self.program.filter_id_name_pairs_filepath = os.path.join("data", "filters", "filter_id_name_pairs.json")
+        self.program.filter_id_name_pairs_filepath = os.path.join("data", "filter_id_name_pairs.json")
 
         if not os.path.exists(self.program.filter_id_name_pairs_filepath):
 
@@ -64,7 +64,7 @@ class ProgramInitialiser():
                 filepath = self.program.filter_id_name_pairs_filepath
                 )
             
-        print(f"\nWritten filepath: {self.program.filter_id_name_pairs_filepath}")
+            print(f"\nWritten filepath: {self.program.filter_id_name_pairs_filepath}")
         
         self.has_initialised_filepaths = True
     

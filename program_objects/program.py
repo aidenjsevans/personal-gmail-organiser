@@ -10,6 +10,7 @@ from services.message_service import MessageService
 
 from utilities.user_interface_helper import UserInterfaceHelper
 from utilities.filter_helper import FilterHelper
+from utilities.gmail_helper import GmailHelper
 
 from models.label import Label
 from models.filters.filter import Filter
@@ -54,35 +55,35 @@ class Program:
 
         index_choice: str = input("\nSelect a Gmail service: ")
 
-        has_user_finished = False
+        has_user_finished_choosing_gmail_service = False
 
         if not index_choice.isdigit():
             
             print(f"ERROR: '{index_choice}' is not an integer")
 
-            return has_user_finished
+            return has_user_finished_choosing_gmail_service
         
         try:
 
             if gmail_service_options[int(index_choice)] == 'exit':
                 
-                has_user_finished = True
+                has_user_finished_choosing_gmail_service = True
                 
-                return has_user_finished
+                return has_user_finished_choosing_gmail_service
 
             if gmail_service_options[int(index_choice)] == 'gmail filters':
 
-                finished_choosing_filter_service = False
+                has_user_finished_choosing_filter_service = False
 
-                while not finished_choosing_filter_service:
+                while not has_user_finished_choosing_filter_service:
 
-                    finished_choosing_filter_service = self.user_choosing_filter_service()
+                    has_user_finished_choosing_filter_service = self.user_choosing_filter_service()
 
         except KeyError:
 
             print(f"ERROR: '{index_choice}' is not a valid input")
 
-            return has_user_finished
+            return has_user_finished_choosing_gmail_service
 
     def user_choosing_filter_service(self) -> bool:
 
@@ -94,19 +95,19 @@ class Program:
 
         index_choice: str = input("\nSelect a filter service: ")
         
-        has_user_finished = False
+        has_user_finished_choosing_filter_service = False
 
         if not index_choice.isdigit():
             
             print(f"ERROR: '{index_choice}' is not an integer")
             
-            return has_user_finished
+            return has_user_finished_choosing_filter_service
 
         try:
 
             if filter_service_options[int(index_choice)] == 'exit':
                 
-                has_user_finished = True
+                has_user_finished_choosing_filter_service = True
                 
             if filter_service_options[int(index_choice)] == 'print all filters':
 
@@ -114,51 +115,53 @@ class Program:
             
             if filter_service_options[int(index_choice)] == 'delete filter':
 
-                finished_choosing_delete_service_option: bool = False
+                has_user_finished_choosing_delete_service_option: bool = False
 
-                while not finished_choosing_delete_service_option:
-                    finished_choosing_delete_service_option = self.user_choosing_delete_filter_service()
+                while not has_user_finished_choosing_delete_service_option:
+                    
+                    has_user_finished_choosing_delete_service_option = self.user_choosing_delete_filter_service()
 
             if filter_service_options[int(index_choice)] == "create filter":
 
-                finished_choosing_create_service_option: bool = False
+                has_user_finished_choosing_create_service_option: bool = False
 
-                while not finished_choosing_create_service_option:
-                    finished_choosing_create_service_option = self.user_choosing_create_filter_service()
+                while not has_user_finished_choosing_create_service_option:
+                    
+                    has_user_finished_choosing_create_service_option = self.user_choosing_create_filter_service()
 
-            return has_user_finished
+            return has_user_finished_choosing_filter_service
         
         except KeyError:
             
             print(f"ERROR: '{index_choice}' is not a valid input")
 
-            return has_user_finished
+            return has_user_finished_choosing_filter_service
 
     def user_choosing_delete_filter_service(self) -> bool:
             
             filter_delete_service_options: dict = UserInterfaceHelper.get_service_options(
-            user_interface_constants = self.user_interface_constants,
-            attribute_name = "filter_delete_service_options",
-            service_name = "Filter delete"
-            )
+                user_interface_constants = self.user_interface_constants,
+                attribute_name = "filter_delete_service_options",
+                service_name = "Filter delete"
+                )
 
             index_choice: str = input("\nSelect a filter delete service: ")
 
-            has_user_finished = False
+            has_user_finished_choosing_delete_service = False
 
             if not index_choice.isdigit():
 
                 print(f"ERROR: '{index_choice}' is not an integer")
 
-                return has_user_finished
+                return has_user_finished_choosing_delete_service
 
             try:
 
                 if filter_delete_service_options[int(index_choice)] == 'exit':
             
-                    has_user_finished = True
+                    has_user_finished_choosing_delete_service = True
 
-                    return has_user_finished
+                    return has_user_finished_choosing_delete_service
             
                 if filter_delete_service_options[int(index_choice)] == 'delete by id':
 
@@ -169,13 +172,13 @@ class Program:
                         suppress_print = False
                         )
 
-                    return has_user_finished
+                    return has_user_finished_choosing_delete_service
 
             except KeyError:
 
                 print(f"ERROR: '{index_choice}' is not a valid input")
 
-                return has_user_finished
+                return has_user_finished_choosing_delete_service
 
     def user_choosing_create_filter_service(self) -> bool:
 
@@ -187,41 +190,42 @@ class Program:
         
         index_choice: str = input("\nSelect a filter create service: ")
 
-        has_user_finished = False
+        has_user_finished_choosing_create_service = False
 
         if not index_choice.isdigit():
 
             print(f"ERROR: '{index_choice}' is not an integer")
 
-            return has_user_finished
+            return has_user_finished_choosing_create_service
 
         try:
 
             if filter_create_service_options[int(index_choice)] == 'exit':
         
-                has_user_finished = True
+                has_user_finished_choosing_create_service = True
 
-                return has_user_finished
+                return has_user_finished_choosing_create_service
         
             if filter_create_service_options[int(index_choice)] == 'create filter':
 
-                finished_creating_filter: bool = False
+                has_user_finished_creating_filter: bool = False
 
-                while not finished_creating_filter:
-                    finished_creating_filter = self.user_creating_filter()
+                while not has_user_finished_creating_filter:
+                    
+                    has_user_finished_creating_filter = self.user_creating_filter()
                 
-                return has_user_finished
+                return has_user_finished_choosing_create_service
 
         except KeyError:
 
             print(f"ERROR: '{index_choice}' is not a valid input")
 
-            return has_user_finished
+            return has_user_finished_choosing_create_service
 
     #   TODO break down into smaller sub methods
     def user_creating_filter(self) -> bool:
 
-        has_user_finished = False
+        has_user_finished_creating_filter = False
 
         #   TODO validate the filter name
         filter_name: str = input("Filter name: ")
@@ -240,15 +244,15 @@ class Program:
 
             print(f"ERROR: '{criteria_index_choice}' is not an integer")
 
-            return has_user_finished
+            return has_user_finished_creating_filter
 
         try:
 
             if filter_criteria_options[int(criteria_index_choice)] == 'exit':
 
-                has_user_finished = True
+                has_user_finished_creating_filter = True
 
-                return has_user_finished
+                return has_user_finished_creating_filter
             
             if filter_criteria_options[int(criteria_index_choice)] == 'from':
                 
@@ -260,7 +264,7 @@ class Program:
 
             print(f"ERROR: '{criteria_index_choice}' is not a valid input")
 
-            return has_user_finished
+            return has_user_finished_creating_filter
         
         #   TODO allow user to add multiple actions and criteria
         filter_action_options: dict = FilterHelper.get_filter_options(
@@ -277,15 +281,15 @@ class Program:
 
             print(f"ERROR: '{action_index_choice}' is not an integer")
 
-            return has_user_finished
+            return has_user_finished_creating_filter
         
         try:
 
             if filter_action_options[int(action_index_choice)] == 'exit':
 
-                has_user_finished = True
+                has_user_finished_creating_filter = True
 
-                return has_user_finished
+                return has_user_finished_creating_filter
             
             #   TODO allow user to add multiple label ids
             if filter_action_options[int(action_index_choice)] == 'addLabelIds':
@@ -311,7 +315,7 @@ class Program:
 
                     print(f"ERROR: '{label_index_choice}' is not an integer")
 
-                    return has_user_finished
+                    return has_user_finished_creating_filter
                 
                 try:
 
@@ -326,13 +330,13 @@ class Program:
 
                     print(f"ERROR: '{label_index_choice}' is not a valid input")
 
-                    return has_user_finished
+                    return has_user_finished_creating_filter
         
         except KeyError:
 
             print(f"ERROR: '{action_index_choice}' is not a valid input")
 
-            return has_user_finished
+            return has_user_finished_creating_filter
         
         created_filter: Filter = Filter(
             name = filter_name,
@@ -346,6 +350,51 @@ class Program:
         has_user_finished = True
 
         return has_user_finished
+    
+    def user_choosing_filter_criteria(self):
+
+        #   TODO allow user to add multiple actions and criteria
+        filter_criteria_options: dict = FilterHelper.get_filter_options(
+            filter_constants = self.filter_constants,
+            attribute_name = "filter_criteria_options",
+            option_name = "Criteria"
+            )
+        
+        criteria_index_choice: str = input("\nSelect a filter criteria option: ")
+        
+        filter_criteria: dict = {}
+
+        has_user_finished_choosing_criteria_option = False
+
+        if not criteria_index_choice.isdigit():
+
+            print(f"ERROR: '{criteria_index_choice}' is not an integer")
+
+            return has_user_finished_choosing_criteria_option
+
+        try:
+            #   TODO consider adding a 'continue' option instead of just exit
+            if filter_criteria_options[int(criteria_index_choice)] == 'exit':
+
+                has_user_finished_choosing_criteria_option = True
+
+                return has_user_finished_choosing_criteria_option
+            
+            if filter_criteria_options[int(criteria_index_choice)] == 'from':
+                
+                #   TODO validate email format
+                #   TODO reformat to allow to multiple emails
+                sender_email_input: str = input("Sender email: ")
+
+                filter_criteria['from'] = sender_email_input
+
+        except KeyError:
+
+            print(f"ERROR: '{criteria_index_choice}' is not a valid input")
+
+            return has_user_finished_choosing_criteria_option
+
+
                 
 
   

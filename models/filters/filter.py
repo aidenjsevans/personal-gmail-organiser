@@ -31,22 +31,42 @@ class Filter:
             raise Exception("The input dictionary must contain an 'id' key")
         
         if "criteria" in keys:
-            criteria: dict = filter_dict["criteria"]
+            filter_criteria: dict = filter_dict["criteria"]
         else:
-            criteria: dict = None
+            filter_criteria: dict = None
         
         if "action" in keys:
-            action: dict = filter_dict["action"]
+            filter_action: dict = filter_dict["action"]
         else:
-            action: dict = None
+            filter_action: dict = None
 
         return cls(
             name = None,
-            filter_id=filter_id,
-            criteria=criteria,
-            action=action
+            filter_id = filter_id,
+            criteria = filter_criteria,
+            action = filter_action
             )
     
+    @classmethod
+    def from_dict(
+        cls,
+        filter_dict: dict):
+
+        keys: list[str] = filter_dict.keys()
+        
+        filter_name: str = keys[0]
+
+        filter_criteria: dict = filter_dict[filter_name]["criteria"]
+        filter_action: dict = filter_dict[filter_name]["action"]
+        filter_id: str = filter_dict[filter_name]["id"]
+
+        return cls(
+            name = filter_name,
+            filter_id = filter_id,
+            criteria = filter_criteria,
+            action = filter_action
+            )
+
     @property
     def config(self) -> dict:
 

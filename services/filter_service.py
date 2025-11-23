@@ -71,7 +71,7 @@ class FilterService(GmailServiceUser):
 
                 case 404:
                 
-                    print(f"\nFilter ID : {filter_id} does not exist in the cloud")
+                    print(f"\nWARNING: filter {filter_id} does not exist in the cloud")
 
                     return None
 
@@ -79,6 +79,7 @@ class FilterService(GmailServiceUser):
     def get_all_cloud_filters(self) -> list[Filter] | None:
 
         results = self.gmail_service.service.users().settings().filters().list(userId="me").execute()
+        
         filter_dicts = results.get("filter",[])
 
         filters: list[Filter] = []
@@ -92,6 +93,27 @@ class FilterService(GmailServiceUser):
             filter = Filter.from_gmail_api_dict(filter_dict=filter_dict)
             
             filters.append(filter)
+        
+        return filters
+    
+    def get_all_local_filters(self) -> list[Filter] | None:
+
+        filters: list[Filter] = []
+
+        with os.scandir(self.filter_data_dir) as entries:
+
+            for entry in entries:
+
+                if not entry.is_file():
+                    continue
+
+                if not entry.name.endswith(".json"):
+                    continue
+
+                filter_dict: dict = IOHelper.read_dict_from_local_json_file(entry.path)
+                filter = Filter.from_dict(filter_dict)
+
+                filters.append(filter)
         
         return filters
 
