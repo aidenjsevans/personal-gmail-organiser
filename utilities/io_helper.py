@@ -95,7 +95,7 @@ class IOHelper:
 
             for list_arg in lists_arg:
                 writer.writerow(list_arg)
-    
+
     @staticmethod
     def read_csv_file_to_lists(filepath: str):
 

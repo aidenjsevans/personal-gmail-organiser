@@ -28,6 +28,7 @@ class ProgramInitialiser():
         self.has_initialised_filepaths = False
         self.has_initialised_dir_paths = False
         self.has_initialised_services = False
+        self.has_synced_id_name_pairs_with_local_filters = False
     
     def initialise_program(self) -> Program:
 
@@ -45,6 +46,12 @@ class ProgramInitialiser():
 
         if not self.has_initialised_services:
             raise Exception("\nERROR: failed to initialise services")
+        
+        #   TODO possibly encapsulate into a sync_program function
+        self.sync_id_name_pairs_with_local_filters()
+
+        if not self.has_synced_id_name_pairs_with_local_filters:
+            raise Exception(f"\nERROR: failed to sync local filters with {self.program.filter_id_name_pairs_filepath}")
 
         for attribute, value in self.__dict__.items():
 
@@ -170,7 +177,7 @@ class ProgramInitialiser():
 
         self.has_initialised_services = True
     
-    def cloud_sync_filters(self):
+    def sync_cloud_filters(self):
 
         filter_id_name_pairs_filepath: str = os.path.join("data", "id_name_pairs.json")
 
@@ -234,3 +241,20 @@ class ProgramInitialiser():
         IOHelper.write_dict_to_json_file(
             data = filter_id_name_pairs_filepath,
             filepath = filter_id_name_pairs_filepath)
+
+    def sync_id_name_pairs_with_local_filters(self):
+
+        filters: list[Filter] = self.program.filter_service.get_all_local_filters()
+
+        json_dict: dict = {}
+
+        for filter in filters:
+
+            json_dict[filter.filter_id] = filter.name
+        
+        IOHelper.write_dict_to_json_file(
+            data = json_dict,
+            filepath = self.program.filter_id_name_pairs_filepath
+            )
+        
+        self.has_synced_id_name_pairs_with_local_filters = True

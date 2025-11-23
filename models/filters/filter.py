@@ -52,7 +52,7 @@ class Filter:
         cls,
         filter_dict: dict):
 
-        keys: list[str] = filter_dict.keys()
+        keys: list[str] = list(filter_dict.keys())
         
         filter_name: str = keys[0]
 
