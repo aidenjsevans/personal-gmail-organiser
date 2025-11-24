@@ -25,18 +25,12 @@ class ProgramInitialiser():
         self.number_of_random_chars = number_of_random_chars
         self.name_collision_count_limit = name_collision_count_limit
 
-        self.has_initialised_filepaths = False
         self.has_initialised_dir_paths = False
         self.has_initialised_services = False
-        self.has_synced_id_name_pairs_with_local_filters = False
+        self.has_synced_cloud_filters = False
     
     def initialise_program(self) -> Program:
 
-        self.initialise_filepaths()
-
-        if not self.has_initialised_filepaths:
-            raise Exception("\nERROR: failed to initialise filepaths")
-        
         self.initialise_dir_paths()
 
         if not self.has_initialised_dir_paths:
@@ -47,11 +41,10 @@ class ProgramInitialiser():
         if not self.has_initialised_services:
             raise Exception("\nERROR: failed to initialise services")
         
-        #   TODO possibly encapsulate into a sync_program function
-        self.sync_id_name_pairs_with_local_filters()
+        self.sync_cloud_filters()
 
-        if not self.has_synced_id_name_pairs_with_local_filters:
-            raise Exception(f"\nERROR: failed to sync local filters with {self.program.filter_id_name_pairs_filepath}")
+        if not self.has_synced_cloud_filters:
+            raise Exception("\nERROR: failed to sync cloud filters")
 
         for attribute, value in self.__dict__.items():
 
@@ -60,20 +53,6 @@ class ProgramInitialiser():
         
         return self.program
 
-    def initialise_filepaths(self):
-
-        self.program.filter_id_name_pairs_filepath = os.path.join("data", "filter_id_name_pairs.json")
-
-        if not os.path.exists(self.program.filter_id_name_pairs_filepath):
-
-            IOHelper.write_dict_to_json_file(
-                data = {}, 
-                filepath = self.program.filter_id_name_pairs_filepath
-                )
-            
-            print(f"\nWritten filepath: {self.program.filter_id_name_pairs_filepath}")
-        
-        self.has_initialised_filepaths = True
     
     def initialise_dir_paths(self):
 
@@ -146,7 +125,7 @@ class ProgramInitialiser():
     
     def initialise_services(self):
         
-        if not self.has_initialised_filepaths or not self.has_initialised_dir_paths:
+        if not self.has_initialised_dir_paths:
             raise Exception("Program failed to initialise")
 
         gmail_service = GmailService(
@@ -157,7 +136,7 @@ class ProgramInitialiser():
         
         filter_service = FilterService(
             gmail_service = gmail_service,
-            filter_data_dir = self.program.filter_data_dir
+            filter_data_dir = self.program.filter_data_dir,
             )
         
         block_filter_service = BlockFilterService(gmail_service)
@@ -179,34 +158,27 @@ class ProgramInitialiser():
     
     def sync_cloud_filters(self):
 
-        filter_id_name_pairs_filepath: str = os.path.join("data", "id_name_pairs.json")
-
-        if not os.path.exists(filter_id_name_pairs_filepath):
-
-            IOHelper.write_dict_to_json_file(
-                data = {}, 
-                filepath = filter_id_name_pairs_filepath
-                )
+        if not self.has_initialised_dir_paths:
+            raise Exception("\nERROR: failed to initialise filepaths")
         
-        filters: list[Filter] | None = self.filter_service.get_all_cloud_filters()
+        local_filters: list[Filter] = self.program.filter_service.get_all_local_filters()
+        local_filters_filter_id_set: set = set()
 
-        if filters == None:
-            return
-        
-        #   TODO need a way to determine if a filter is a block filter
+        for local_filter in local_filters:
 
-        id_name_pairs_dict: dict = IOHelper.read_dict_from_local_json_file(filter_id_name_pairs_filepath)
+            local_filters_filter_id_set.add(local_filter.filter_id)
 
-        #   TODO come back to this (this should not happen)
-        if id_name_pairs_dict == None:
-            raise Exception()
+        cloud_filters: list[Filter] = self.program.filter_service.get_all_cloud_filters()
+        cloud_filters_filter_id_set: set = set()
 
-        for filter in filters:
+        for cloud_filter in cloud_filters:
 
-            if filter.filter_id in id_name_pairs_dict:
-                continue
+            cloud_filters_filter_id_set.add(cloud_filter.filter_id)
 
-            if filter.name == None:
+        #   Check if cloud filters are missing from local storage. If so, generate a name and add the filter to data/filters
+        for cloud_filter in cloud_filters:
+
+            if cloud_filter.filter_id not in local_filters_filter_id_set:
 
                 name_collision_count: int = 0
                 
@@ -222,39 +194,34 @@ class ProgramInitialiser():
                     
                     random_filter_name: str = f"filter_{random_alphabetic_code}"
 
-                    filepath: str = os.path.join(self.filter_data_dir, random_filter_name)
+                    filepath: str = os.path.join(self.program.filter_data_dir, random_filter_name)
 
                     if os.path.exists(filepath):
                         name_collision_count += 1
                         continue
                     
-                    filter.name = random_filter_name
+                    cloud_filter.name = random_filter_name
+                    
                     break
-            
-            filter_name: str = filter.name
-            filter_id: str = filter.filter_id
+                
+                local_filters.append(cloud_filter)
+                local_filters_filter_id_set.add(cloud_filter.filter_id)
 
-            id_name_pairs_dict[filter_id] = filter_name
-            
-            self.filter_service.save_filter_to_local_json_file(filter)
+                self.program.filter_service.save_filter_to_local_json_file(cloud_filter)
 
-        IOHelper.write_dict_to_json_file(
-            data = filter_id_name_pairs_filepath,
-            filepath = filter_id_name_pairs_filepath)
-
-    def sync_id_name_pairs_with_local_filters(self):
-
-        filters: list[Filter] = self.program.filter_service.get_all_local_filters()
-
-        json_dict: dict = {}
-
-        for filter in filters:
-
-            json_dict[filter.filter_id] = filter.name
+                #   TODO add entry to filter id name pairs json
         
-        IOHelper.write_dict_to_json_file(
-            data = json_dict,
-            filepath = self.program.filter_id_name_pairs_filepath
-            )
         
-        self.has_synced_id_name_pairs_with_local_filters = True
+        #   Check if local filters are missing from cloud storage. If so, delete the filter from local storage
+        for local_filter in local_filters:
+
+            if local_filter.filter_id not in cloud_filters_filter_id_set:
+
+                self.program.filter_service.delete_local_filter_by_name(
+                    name = local_filter.name,
+                    suppress_print = False
+                    )
+        
+        self.has_synced_cloud_filters = True
+
+        print("\nFilter cloud sync complete")

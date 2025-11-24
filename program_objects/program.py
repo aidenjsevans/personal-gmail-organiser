@@ -36,7 +36,6 @@ class Program:
         self.filter_data_dir: str | None = None
         self.block_filter_data_dir: str | None = None
         
-        self.filter_id_name_pairs_filepath: str | None = None
         self.dir_paths_filepath: str | None = None
 
         self.gmail_service: GmailService | None = None
@@ -385,7 +384,7 @@ class Program:
                 sender_email_input: str = input("Sender email: ")
 
                 if not GmailHelper.is_valid_email_address(sender_email_input):
-                    
+
                     print(f"ERROR: '{sender_email_input}' is not a valid email address")
 
                     return has_user_finished_choosing_criteria_option

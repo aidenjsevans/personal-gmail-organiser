@@ -96,6 +96,7 @@ class FilterService(GmailServiceUser):
         
         return filters
     
+    #   TODO save changes to the id name pairs json
     def get_all_local_filters(self) -> list[Filter] | list:
 
         filters: list[Filter] = []

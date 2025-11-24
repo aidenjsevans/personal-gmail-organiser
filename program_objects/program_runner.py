@@ -40,7 +40,7 @@ class ProgramRunner:
             program_initialiser = ProgramInitialiser(program)
             program_initialiser.initialise_program()
             
-            print("\nGMAIL ORGANISER\n")
+            print("\nGMAIL ORGANISER")
 
             finished_choosing_gmail_service: bool = False
 
