@@ -1,5 +1,7 @@
 import os
 
+import time
+
 from program_objects.program import Program
 from program_objects.program_initialiser import ProgramInitialiser
 
@@ -39,6 +41,8 @@ class ProgramRunner:
             
             program_initialiser = ProgramInitialiser(program)
             program_initialiser.initialise_program()
+
+            time.sleep(1)
             
             print("\nGMAIL ORGANISER")
 

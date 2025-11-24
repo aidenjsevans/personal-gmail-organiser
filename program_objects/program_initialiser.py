@@ -1,9 +1,12 @@
 import os
 
+import time
+
 from program_objects.program import Program
 
 from utilities.io_helper import IOHelper
 from utilities.random_helper import RandomHelper
+from utilities.user_interface_helper import ProgressIndicator
 
 from services.gmail_service import GmailService
 from services.filter_service import FilterService
@@ -161,6 +164,12 @@ class ProgramInitialiser():
         if not self.has_initialised_dir_paths:
             raise Exception("\nERROR: failed to initialise filepaths")
         
+        sync_cloud_filters_progress_indicator = ProgressIndicator("Filter cloud sync")
+        sync_cloud_filters_progress_indicator.start()
+
+        #   TODO remove
+        time.sleep(2)
+
         local_filters: list[Filter] = self.program.filter_service.get_all_local_filters()
         local_filters_filter_id_set: set = set()
 
@@ -222,6 +231,6 @@ class ProgramInitialiser():
                     suppress_print = False
                     )
         
-        self.has_synced_cloud_filters = True
+        sync_cloud_filters_progress_indicator.stop()
 
-        print("\nFilter cloud sync complete")
+        self.has_synced_cloud_filters = True
