@@ -382,11 +382,30 @@ class Program:
             
             if filter_criteria_options[int(criteria_index_choice)] == 'from':
                 
-                #   TODO validate email format
-                #   TODO reformat to allow to multiple emails
                 sender_email_input: str = input("Sender email: ")
 
-                filter_criteria['from'] = sender_email_input
+                if not GmailHelper.is_valid_email_address(sender_email_input):
+                    
+                    print(f"ERROR: '{sender_email_input}' is not a valid email address")
+
+                    return has_user_finished_choosing_criteria_option
+
+                from_criteria: str | None = filter_criteria_options.get("from")
+
+                if from_criteria == None:
+
+                    filter_criteria['from'] = sender_email_input
+                
+                else:
+
+                    sender_emails: set[str] = GmailHelper.create_email_address_set_from_email_address_string(from_criteria)
+
+                    sender_emails.add(sender_email_input)
+
+                    from_criteria = GmailHelper.create_email_address_string_from_email_address_set(sender_emails)
+
+                    filter_criteria['from'] = sender_email_input
+
 
         except KeyError:
 

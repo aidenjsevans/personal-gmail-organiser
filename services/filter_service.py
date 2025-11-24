@@ -76,7 +76,7 @@ class FilterService(GmailServiceUser):
                     return None
 
     #   TODO test this function
-    def get_all_cloud_filters(self) -> list[Filter] | None:
+    def get_all_cloud_filters(self) -> list[Filter] | list:
 
         results = self.gmail_service.service.users().settings().filters().list(userId="me").execute()
         
@@ -86,7 +86,7 @@ class FilterService(GmailServiceUser):
 
         if not filter_dicts:
             
-            return None
+            return filters
         
         for filter_dict in filter_dicts:
             
@@ -96,7 +96,7 @@ class FilterService(GmailServiceUser):
         
         return filters
     
-    def get_all_local_filters(self) -> list[Filter] | None:
+    def get_all_local_filters(self) -> list[Filter] | list:
 
         filters: list[Filter] = []
 
@@ -178,6 +178,29 @@ class FilterService(GmailServiceUser):
             #   TODO need to delete the local saved json file as well. Should implement a file that stores the filter name and ids as key value pairs
 
             return filter
+
+    def delete_local_filter_by_name(
+            self,
+            name: str,
+            suppress_print: bool) -> None:
+        
+        filepath: str = os.path.join(self.filter_data_dir, f"{name}.json")
+
+        filter_dict: Filter | None = IOHelper.read_dict_from_local_json_file(filepath)
+
+        if filter_dict == None:
+
+            return
+
+        filter = Filter.from_dict(filter_dict)
+
+        IOHelper.delete_local_file(filepath)
+
+        if suppress_print:
+            return
+        
+        print(f"\nFilter deleted from: {filepath}")
+        print(f"\n{filter.__str__()}")
 
     #   TODO test this function
     def print_all_filters(self) -> None:
