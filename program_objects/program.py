@@ -109,8 +109,12 @@ class Program:
                 has_user_finished_choosing_filter_service = True
                 
             if filter_service_options[int(index_choice)] == 'print all filters':
-
-                self.filter_service.print_all_filters()
+                
+                self.filter_service.sync_cloud_filters(
+                    with_progress_indicator = False
+                )
+                
+                self.filter_service.print_all_local_filters()
             
             if filter_service_options[int(index_choice)] == 'delete filter':
 

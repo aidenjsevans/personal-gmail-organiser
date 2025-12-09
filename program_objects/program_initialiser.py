@@ -21,12 +21,12 @@ class ProgramInitialiser():
     def __init__(
             self, 
             program: Program,
-            number_of_random_chars: int = 5,
-            name_collision_count_limit: int = 10):
+            number_of_filter_name_random_chars: int = 5,
+            filter_name_collision_count_limit: int = 10):
         
         self.program = program
-        self.number_of_random_chars = number_of_random_chars
-        self.name_collision_count_limit = name_collision_count_limit
+        self.number_of_filter_name_random_chars = number_of_filter_name_random_chars
+        self.filter_name_collision_count_limit = filter_name_collision_count_limit
 
         self.has_initialised_dir_paths = False
         self.has_initialised_services = False
@@ -44,7 +44,7 @@ class ProgramInitialiser():
         if not self.has_initialised_services:
             raise Exception("\nERROR: failed to initialise services")
         
-        self.sync_cloud_filters()
+        self.has_synced_cloud_filters = self.filter_service.sync_cloud_filters()
 
         if not self.has_synced_cloud_filters:
             raise Exception("\nERROR: failed to sync cloud filters")
@@ -131,106 +131,32 @@ class ProgramInitialiser():
         if not self.has_initialised_dir_paths:
             raise Exception("Program failed to initialise")
 
-        gmail_service = GmailService(
+        self.gmail_service = GmailService(
             scopes = self.program.scopes,
             authentication_data_dir = self.program.authentication_data_dir,
             service_version = self.program.service_version
             )
         
-        filter_service = FilterService(
-            gmail_service = gmail_service,
+        self.filter_service = FilterService(
+            gmail_service = self.gmail_service,
             filter_data_dir = self.program.filter_data_dir,
+            filter_name_collision_count_limit = self.filter_name_collision_count_limit,
+            number_of_filter_name_random_chars = self.number_of_filter_name_random_chars
             )
         
-        block_filter_service = BlockFilterService(gmail_service)
+        self.block_filter_service = BlockFilterService(self.gmail_service)
         
-        label_service = LabelService(
-            gmail_service = gmail_service,
+        self.label_service = LabelService(
+            gmail_service = self.gmail_service,
             label_constants = self.program.label_constants
             )
         
-        message_service =  MessageService(gmail_service)
+        self.message_service =  MessageService(self.gmail_service)
 
-        self.program.gmail_service = gmail_service
-        self.program.filter_service = filter_service
-        self.program.block_filter_service = block_filter_service
-        self.program.label_service = label_service
-        self.program.message_service = message_service
+        self.program.gmail_service = self.gmail_service
+        self.program.filter_service = self.filter_service
+        self.program.block_filter_service = self.block_filter_service
+        self.program.label_service = self.label_service
+        self.program.message_service = self.message_service
 
         self.has_initialised_services = True
-    
-    def sync_cloud_filters(self):
-
-        if not self.has_initialised_dir_paths:
-            raise Exception("\nERROR: failed to initialise filepaths")
-        
-        sync_cloud_filters_progress_indicator = ProgressIndicator("Filter cloud sync")
-        sync_cloud_filters_progress_indicator.start()
-
-        #   TODO remove
-        time.sleep(2)
-
-        local_filters: list[Filter] = self.program.filter_service.get_all_local_filters()
-        local_filters_filter_id_set: set = set()
-
-        for local_filter in local_filters:
-
-            local_filters_filter_id_set.add(local_filter.filter_id)
-
-        cloud_filters: list[Filter] = self.program.filter_service.get_all_cloud_filters()
-        cloud_filters_filter_id_set: set = set()
-
-        for cloud_filter in cloud_filters:
-
-            cloud_filters_filter_id_set.add(cloud_filter.filter_id)
-
-        #   Check if cloud filters are missing from local storage. If so, generate a name and add the filter to data/filters
-        for cloud_filter in cloud_filters:
-
-            if cloud_filter.filter_id not in local_filters_filter_id_set:
-
-                name_collision_count: int = 0
-                
-                while True:
-                    
-                    #   TODO consider how to deal with this outcome
-                    if name_collision_count > self.name_collision_count_limit:
-                        raise Exception(f"Name collision count of {self.name_collision_count_limit} exceeded")
-
-                    random_alphabetic_code: str = RandomHelper.create_random_alphabetic_code(
-                        number_of_chars = self.number_of_random_chars
-                        )
-                    
-                    random_filter_name: str = f"filter_{random_alphabetic_code}"
-
-                    filepath: str = os.path.join(self.program.filter_data_dir, random_filter_name)
-
-                    if os.path.exists(filepath):
-                        name_collision_count += 1
-                        continue
-                    
-                    cloud_filter.name = random_filter_name
-                    
-                    break
-                
-                local_filters.append(cloud_filter)
-                local_filters_filter_id_set.add(cloud_filter.filter_id)
-
-                self.program.filter_service.save_filter_to_local_json_file(cloud_filter)
-
-                #   TODO add entry to filter id name pairs json
-        
-        
-        #   Check if local filters are missing from cloud storage. If so, delete the filter from local storage
-        for local_filter in local_filters:
-
-            if local_filter.filter_id not in cloud_filters_filter_id_set:
-
-                self.program.filter_service.delete_local_filter_by_name(
-                    name = local_filter.name,
-                    suppress_print = False
-                    )
-        
-        sync_cloud_filters_progress_indicator.stop()
-
-        self.has_synced_cloud_filters = True

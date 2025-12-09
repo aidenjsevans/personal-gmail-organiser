@@ -7,6 +7,8 @@ from constants.filters.filters_path import FiltersPath
 from models.filters.filter import Filter
 
 from utilities.io_helper import IOHelper
+from utilities.user_interface_helper import ProgressIndicator
+from utilities.random_helper import RandomHelper
 
 from googleapiclient.errors import HttpError
 
@@ -15,10 +17,14 @@ class FilterService(GmailServiceUser):
     def __init__(
             self, 
             gmail_service,
-            filter_data_dir: str):
+            filter_data_dir: str,
+            filter_name_collision_count_limit: int,
+            number_of_filter_name_random_chars: int):
         
         super().__init__(gmail_service)
         self.filter_data_dir = filter_data_dir
+        self.name_collision_count_limit = filter_name_collision_count_limit
+        self.number_of_filter_name_random_chars = number_of_filter_name_random_chars
 
     def get_local_filter_by_name(
             self,
@@ -204,9 +210,9 @@ class FilterService(GmailServiceUser):
         print(f"\n{filter.__str__()}")
 
     #   TODO test this function
-    def print_all_filters(self) -> None:
+    def print_all_local_filters(self) -> None:
 
-        filters: list[Filter] | None = self.get_all_cloud_filters()
+        filters: list[Filter] | None = self.get_all_local_filters()
 
         if not filters:
             print("\nNo filters found")
@@ -216,3 +222,72 @@ class FilterService(GmailServiceUser):
 
         for filter in filters:
             print(f"\n{filter.__str__()}")
+    
+    def sync_cloud_filters(
+            self,
+            with_progress_indicator: bool = True) -> bool:
+
+        if with_progress_indicator:
+            sync_cloud_filters_progress_indicator = ProgressIndicator("Filter cloud sync")
+            sync_cloud_filters_progress_indicator.start()
+
+        local_filters: list[Filter] = self.get_all_local_filters()
+        local_filters_filter_id_set: set = set()
+
+        for local_filter in local_filters:
+            local_filters_filter_id_set.add(local_filter.filter_id)
+
+        cloud_filters: list[Filter] = self.get_all_cloud_filters()
+        cloud_filters_filter_id_set: set = set()
+
+        for cloud_filter in cloud_filters:
+            cloud_filters_filter_id_set.add(cloud_filter.filter_id)
+
+        #   Check if cloud filters are missing from local storage. If so, generate a name and add the filter to data/filters
+        for cloud_filter in cloud_filters:
+
+            if cloud_filter.filter_id not in local_filters_filter_id_set:
+
+                name_collision_count: int = 0
+                
+                while True:
+                    
+                    #   TODO consider how to deal with this outcome
+                    if name_collision_count > self.name_collision_count_limit:
+                        raise Exception(f"Name collision count of {self.name_collision_count_limit} exceeded")
+
+                    random_alphabetic_code: str = RandomHelper.create_random_alphabetic_code(
+                        number_of_chars = self.number_of_filter_name_random_chars
+                        )
+                    
+                    random_filter_name: str = f"filter_{random_alphabetic_code}"
+
+                    filepath: str = os.path.join(self.filter_data_dir, random_filter_name)
+
+                    if os.path.exists(filepath):
+                        name_collision_count += 1
+                        continue
+                    
+                    cloud_filter.name = random_filter_name
+                    
+                    break
+                
+                local_filters.append(cloud_filter)
+                local_filters_filter_id_set.add(cloud_filter.filter_id)
+
+                self.save_filter_to_local_json_file(cloud_filter)
+        
+        #   Check if local filters are missing from cloud storage. If so, delete the filter from local storage
+        for local_filter in local_filters:
+
+            if local_filter.filter_id not in cloud_filters_filter_id_set:
+
+                self.delete_local_filter_by_name(
+                    name = local_filter.name,
+                    suppress_print = False
+                    )
+        
+        if with_progress_indicator:
+            sync_cloud_filters_progress_indicator.stop()
+        
+        return True
