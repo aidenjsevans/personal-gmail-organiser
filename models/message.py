@@ -26,7 +26,7 @@ class Message:
         self.headers: list[dict] | None = headers
     
     @classmethod
-    def from_dict(cls, message_dict: dict) -> Message:
+    def from_dict(cls, message_dict: dict):
         keys: list[str] = set(message_dict.keys())
 
         if "id" in keys:

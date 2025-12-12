@@ -4,6 +4,8 @@ from models.filters.block_filter import BlockFilter
 
 from exceptions.format_exceptions.invalid_email_format_exception import InvalidEmailFormatException
 
+from utilities.gmail_helper import GmailHelper
+
 class BlockFilterService(GmailServiceUser):
 
     def __init__(self, gmail_service):
@@ -13,7 +15,6 @@ class BlockFilterService(GmailServiceUser):
             self,
             name: str,
             blocked_email_addresses: set[str],
-            block_filters_constants: BlockFiltersConstants,
             suppress_print: bool) -> BlockFilter:
         
         filter_criteria_blocked_email_address_string: str = GmailHelper.create_email_address_string_from_email_address_set(email_addresses=blocked_email_addresses)
@@ -32,7 +33,6 @@ class BlockFilterService(GmailServiceUser):
             ).execute()
         
         block_filter.id = result["id"]
-        block_filter.save_to_local_json_file(block_filters_constants)
 
         if suppress_print:
             return block_filter
@@ -45,15 +45,13 @@ class BlockFilterService(GmailServiceUser):
     def add_email_address_to_block_filter(
             self,
             name: str, 
-            blocked_email_addresses: set[str],
-            block_filters_constants: BlockFiltersConstants) -> None:
+            blocked_email_addresses: set[str]) -> None:
         
         if len(blocked_email_addresses) == 0:
             raise Exception("At least 1 argument must be given")
         
         old_block_filter = BlockFilter.from_local_json_file_by_name(
             name=name,
-            block_filters_constants=block_filters_constants
             )
         
         old_id: str = old_block_filter.id
@@ -83,7 +81,6 @@ class BlockFilterService(GmailServiceUser):
         new_block_filter = self.create_email_address_block_filter(
             name=name,
             blocked_email_addresses=new_blocked_email_addresses,
-            block_filters_constants=block_filters_constants,
             suppress_print=True
             )
         

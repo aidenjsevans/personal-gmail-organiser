@@ -16,7 +16,7 @@ class Label:
         self.type = type
     
     @classmethod
-    def from_dict(cls, label_dict: dict) -> Label:
+    def from_dict(cls, label_dict: dict):
         
         keys: list[str] = set(label_dict.keys())
 

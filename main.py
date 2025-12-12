@@ -4,6 +4,10 @@ from constants.user_interface.main_user_interface_constants import MainUserInter
 from constants.filters.main_filter_constants import MainFilterConstants
 from constants.labels.main_label_constants import MainLabelConstants
 
+from widgets.main_windows.main_window import MainWindow
+
+from PySide6.QtWidgets import QApplication
+
 if __name__ == "__main__":
 
     SCOPES: list[str] = [
@@ -15,6 +19,7 @@ if __name__ == "__main__":
     MAIN_FILTER_CONSTANTS = MainFilterConstants()
     MAIN_LABEL_CONSTANTS = MainLabelConstants()
 
+    '''
     program_runner = ProgramRunner(
         scopes = SCOPES,
         service_version = SERVICE_VERSION,
@@ -22,5 +27,22 @@ if __name__ == "__main__":
         filter_constants = MAIN_FILTER_CONSTANTS,
         label_constants = MAIN_LABEL_CONSTANTS
         )
-    
+
     program_runner.run()
+    '''
+
+    app = QApplication([])
+
+    window = MainWindow(
+        title = "Gmail Organiser",
+        width_px = 500,
+        heigh_px = 500
+        )
+
+    window.show()
+
+    app.exec()
+
+
+
+
