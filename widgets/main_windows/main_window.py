@@ -1,8 +1,11 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar, QLabel, QVBoxLayout, QPushButton, QGridLayout
+from PySide6.QtWidgets import (
+    QMainWindow, QToolBar, QLabel, 
+    QVBoxLayout, QPushButton, QGridLayout, 
+    QWidget, QStackedWidget, QMenuBar)
+
 from PySide6.QtGui import QAction, QIcon
 
-from widgets.toolbars.toolbar import Toolbar
-from widgets.actions.action import Action
+from widgets.views.home_view import HomeView
 
 class MainWindow(QMainWindow):
     
@@ -10,45 +13,31 @@ class MainWindow(QMainWindow):
             self,
             title: str,
             width_px: float,
-            heigh_px: float):
+            heigh_px: float,
+            tool_bar: QToolBar,
+            menu_bar: QMenuBar):
         
         super().__init__()
-        
-        layout = QGridLayout()
 
         self.setWindowTitle(title)
         self.resize(width_px, heigh_px)
 
-        self.setLayout(layout)
+        tool_bar = tool_bar(parent = self)
+        self.addToolBar(tool_bar)
 
-        action1 = Action(
-            icon = QIcon(),
-            text = "Action 1",
-            trigger_function = self.action1_triggered,
-            parent = self
-            )
+        menu_bar = menu_bar(parent = self)
+        self.setMenuBar(menu_bar)
+
+        self.home_view = HomeView()
         
-        action2 = Action(
-            icon = QIcon(),
-            text = "Action 2",
-            trigger_function = self.action2_triggered,
-            parent = self
-            )
-    
-        toolbar = Toolbar(
-            actions = [
-               action1,
-               action2 
-            ]
-        )
+        self.stack = QStackedWidget()
+        self.stack.addWidget(self.home_view)
+        self.stack.setCurrentIndex(0)
 
-        self.addToolBar(toolbar)
+        main_window_layout = QGridLayout()
+        self.stack.setLayout(main_window_layout)
+        
+        self.setCentralWidget(self.stack)
 
-    def on_button_click(self):
-        self.label.setText("Button clicked!")
-
-    def action1_triggered(self):
-        print("Action 1 clicked!")
-
-    def action2_triggered(self):
-        print("Action 2 clicked!")
+        
+        
