@@ -3,26 +3,39 @@ from PySide6.QtGui import QAction
 
 from constants.user_interface.user_interface_constants import UserInterfaceConstants
 
+from widgets.views.filter_service_view import FilterServiceView
+from widgets.main_windows.main_window import MainWindow
+
 class GmailServicesMenu(QMenu):
 
     def __init__(
             self,
-            parent: QWidget,
-            user_interface_constants: UserInterfaceConstants):
+            filter_service_view: QWidget,
+            main_window: MainWindow | None = None):
         
-        super().__init__(
-            title = "Gmail Services",
-            parent = parent)
+        super().__init__()
 
-        gmail_service_options: list[str] = user_interface_constants.gmail_service_options
+        self.setTitle("Services")
 
-        for service_option in gmail_service_options:
+        self.filter_service_view = filter_service_view
+        self.main_window = main_window
 
-            action = QAction(
-                text = service_option,
-                parent = self
+    def set_main_window(self, main_window: MainWindow):
+        self.main_window = main_window
+    
+    def initialise_menu_actions(self):
+
+        if not self.main_window:
+            print("ERROR: Main window not initialised")
+            return
+        
+        filter_service_action = QAction(
+            text = "Filter Service",
+            parent = self
             )
 
-            action.triggered.connect(lambda: print(f"{service_option}"))
+        filter_service_action.triggered.connect(lambda: self.main_window.set_view(self.filter_service_view))
 
-            self.addAction(action)
+        self.addAction(filter_service_action)
+
+

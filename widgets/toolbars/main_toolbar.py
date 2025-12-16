@@ -1,31 +1,44 @@
-from PySide6.QtGui import QIcon, QAction
-from PySide6.QtWidgets import QWidget, QToolBar
+from widgets.main_windows.main_window import MainWindow
+from widgets.toolbars.tool_bar import ToolBar
+from widgets.actions.action import Action
 
-class MainToolbar(QToolBar):
+from typing import Callable
+
+from PySide6.QtGui import QIcon
+
+class MainToolbar(ToolBar):
 
     def __init__(
             self,
-            parent: QWidget | None = None):
+            main_window: MainWindow | None = None):
         
-        super().__init__(parent = parent)
-
-        action_1 = QAction(
-            text = "Action 1",
-            parent = self
+        super().__init__(
+            main_window = main_window  
             )
-        
-        action_1.setIcon(QIcon())
-        action_1.triggered.connect(lambda: print("Action 1"))
+    
+    def connect_tool_bar_actions(self):
 
-        action_2 = QAction(
-            text = "Action 2",
-            parent = self
+        self.actions_list = [
+            Action(
+                main_window = self.main_window,
+                text = "Action 1"
+            ),
+            Action(
+                main_window = self.main_window,
+                text = "Action 2"
             )
-        
-        action_2.setIcon(QIcon())
-        action_2.triggered.connect(lambda: print("Action 2"))
+        ]
 
-        self.addAction(action_1)
-        self.addAction(action_2)
+        action1_method: Callable = lambda: print("Action 1")
+        action2_method: Callable = lambda: print("Action 2")
+
+        self.methods = [
+            action1_method,
+            action2_method
+            ]
         
+        super().connect_tool_bar_actions()
+    
+        
+
 

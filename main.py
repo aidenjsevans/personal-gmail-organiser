@@ -5,9 +5,13 @@ from constants.filters.main_filter_constants import MainFilterConstants
 from constants.labels.main_label_constants import MainLabelConstants
 
 from widgets.main_windows.main_window import MainWindow
-from widgets.labels.label import Label
 from widgets.toolbars.main_toolbar import MainToolbar
 from widgets.menu_bars.main_menu_bar import MainMenuBar
+
+from widgets.menus.gmail_services_menu import GmailServicesMenu
+
+from widgets.views.home_view import HomeView
+from widgets.views.filter_service_view import FilterServiceView
 
 from PySide6.QtWidgets import QApplication
 
@@ -36,12 +40,27 @@ if __name__ == "__main__":
 
     app = QApplication([])
 
+    HOME_VIEW = HomeView()
+    FILTER_SERVICE_VIEW = FilterServiceView()
+
+    GMAIL_SERVICE_MENU = GmailServicesMenu(
+        filter_service_view = FILTER_SERVICE_VIEW
+        )
+
+    MAIN_MENU_BAR = MainMenuBar(
+        menus = [
+            GMAIL_SERVICE_MENU
+            ] 
+        )
+    
     window = MainWindow(
         title = "Gmail Organiser",
         width_px = 500,
-        heigh_px = 500,
-        tool_bar = MainToolbar,
-        menu_bar = MainMenuBar,
+        height_px = 500,
+        tool_bar_class = MainToolbar,
+        menu_bar = MAIN_MENU_BAR,
+        home_view = HOME_VIEW,
+        filter_service_view = FILTER_SERVICE_VIEW
         )
 
     window.show()
